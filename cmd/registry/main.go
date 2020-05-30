@@ -78,6 +78,7 @@ func ListenUDP() {
 			log.Println("udp error:", err)
 			continue
 		}
+		log.Println("received UDP packet from", addr.IP.String())
 		ProcessUDP(addr.IP.String(), b[0:n]) // IP and message body.
 	}
 }
