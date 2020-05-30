@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	servers            = make(map[string]registry.Server, 0) // Stores the current list of servers in memory.
+	servers            = make(map[string]registry.Server, 0)
 	checkpointInterval = 5 * time.Minute
 )
 
@@ -54,7 +54,7 @@ func main() {
 		w.Write(registry.ServersToCSV(servers))
 	})
 	http.HandleFunc("/latest", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("v1.5")) // TODO: This should come from GitHub.
+		w.Write(registry.GetLatestReleaseVersion())
 	})
 	log.Println("starting http listener")
 	log.Fatal(http.ListenAndServe(":8080", nil))

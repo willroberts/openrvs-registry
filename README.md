@@ -19,7 +19,6 @@ It listens for OpenRVS beacons on UDP port 8080, for registration and health che
 ## To Do
 
 - Finish health checking
-- Retrieve latest version from GitHub instead of []byte literal
 
 ## Deployments
 
