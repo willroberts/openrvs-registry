@@ -83,10 +83,14 @@ func CSVToServers(csv []byte) (map[string]Server, error) {
 // it can pick up where it last left off. If this file does not exist, fall back
 // to 'seed.csv', which contains the initial seed list for the app.
 func LoadServers(dir string) (map[string]Server, error) {
-	bytes, err := ioutil.ReadFile(getPath(dir, CheckpointFile))
+	p := getPath(dir, CheckpointFile)
+	log.Println("reading checkpoint file at", p)
+	bytes, err := ioutil.ReadFile(p)
 	if err != nil {
 		log.Println("unable to read checkpoint.csv, falling back to seed.csv")
-		bytes, err = ioutil.ReadFile(getPath(dir, SeedFile))
+		p = getPath(dir, SeedFile)
+		log.Println("reading seed file at", p)
+		bytes, err = ioutil.ReadFile(p)
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +106,9 @@ func LoadServers(dir string) (map[string]Server, error) {
 
 // SaveServers writes the latest servers to disk.
 func SaveServers(dir string, servers map[string]Server) error {
-	return ioutil.WriteFile(getPath(dir, CheckpointFile), ServersToCSV(servers), 0644)
+	p := getPath(dir, CheckpointFile)
+	log.Println("saving checkpoint file to", p)
+	return ioutil.WriteFile(p, ServersToCSV(servers), 0644)
 }
 
 func getPath(dir string, file string) string {

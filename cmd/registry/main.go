@@ -19,8 +19,11 @@ var (
 func main() {
 	log.Println("openrvs-registry process started")
 
+	// Allow setting CSV directory explicitly. If you set this, it must include
+	// a platform-dependent trailing slash.
 	var dir string
 	flag.StringVar(&dir, "csvdir", "", "directory containing seed.csv and checkpoint.csv")
+	flag.Parse()
 
 	log.Println("loading seed servers")
 	var err error
