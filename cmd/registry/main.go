@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -10,20 +9,23 @@ import (
 	beacon "github.com/ijemafe/openrvs-beacon"
 )
 
-const (
-	SeedFile       = "seed.csv"
-	CheckpointFile = "checkpoint.csv"
-)
-
-var servers map[string]server
+var servers = make(map[string]server, 0) // Stores the current list of servers in memory.
 
 func main() {
 	log.Println("loading seed servers")
-	servers = make(map[string]server, 0)
 	if err := loadSeedServers(); err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("there are now %d registered servers (confirm over http)", len(servers))
+
+	// Regularly checkpoint servers to disk at checkpoint.csv. This file can be
+	// backed up at an OS level at regular intervals if desired.
+	go func() {
+		for {
+			time.Sleep(checkpointInterval)
+			saveCheckpoint(servers)
+		}
+	}()
 
 	// Start listening on UDP/8080 for beacons.
 	go ListenUDP()
@@ -40,27 +42,6 @@ func main() {
 	})
 	log.Println("starting http listener")
 	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-
-// Every time the app starts up, it checks the file 'checkpoint.csv' to see if
-// it can pick up where it last left off. If this file does not exist, fall back
-// to 'seed.csv', which contains the initial seed list for the app.
-func loadSeedServers() error {
-	bytes, err := ioutil.ReadFile(CheckpointFile)
-	if err != nil {
-		log.Println("unable to read checkpoint.csv, falling back to seed.csv")
-		bytes, err = ioutil.ReadFile(SeedFile)
-		if err != nil {
-			return err
-		}
-	}
-
-	parsed, err := csvToServers(bytes)
-	if err != nil {
-		return err
-	}
-	servers = parsed
-	return nil
 }
 
 // Pretend to be a server and replay the beacon. Useful for testing automatic
