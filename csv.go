@@ -56,9 +56,13 @@ func ServersToCSV(servers map[string]Server) []byte {
 // CSVToServers converts CSV (generally from local file) to a map of servers.
 func CSVToServers(csv []byte) (map[string]Server, error) {
 	servers := make(map[string]Server, 0)
-	lines := strings.Split(string(csv), "\n")
+	trimmed := strings.TrimSuffix(string(csv), "\n")
+	lines := strings.Split(trimmed, "\n")
 	for _, line := range lines {
 		fields := strings.Split(line, ",")
+		if len(fields) != 4 {
+			log.Println("warning: invalid line skipped:", line)
+		}
 		port, err := strconv.Atoi(fields[2])
 		if err != nil {
 			return nil, err
