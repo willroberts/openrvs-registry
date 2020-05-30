@@ -71,7 +71,7 @@ func ListenUDP() {
 
 // When we receive UDP traffic from OpenRVS Game Servers, parse the beacon,
 // healthcheck the server, and update the serverlist.
-func ProcessUDP(ip string, msg []byte) registry.Server {
+func ProcessUDP(ip string, msg []byte) {
 	report, err := beacon.ParseServerReport(ip, msg)
 	if err != nil {
 		log.Println("failed to parse beacon for server", ip)
