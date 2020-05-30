@@ -16,6 +16,11 @@ It listens for HTTP requests on TCP port 8080, with the following endpoints:
 
 It listens for OpenRVS beacons on UDP port 8080, for registration and health checking.
 
+## To Do
+
+- Finish health checking
+- Retrieve latest version from GitHub instead of []byte literal
+
 ## Deployments
 
 There is an existing deployment of this software here:
