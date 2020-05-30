@@ -67,6 +67,7 @@ func CSVToServers(csv []byte) (map[string]Server, error) {
 		fields := strings.Split(line, ",")
 		if len(fields) != 4 {
 			log.Println("warning: invalid line skipped:", line)
+			continue
 		}
 		port, err := strconv.Atoi(fields[2])
 		if err != nil {
