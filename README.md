@@ -18,5 +18,8 @@ It listens for OpenRVS beacons on UDP port 8080, for registration and health che
 
 ## Deployments
 
-So far I have only deployed this locally. Eventually we can put this on a web
-server behind Nginx.
+There is an existing deployment of this software here:
+
+- http://64.225.54.237:8080/servers
+- http://64.225.54.237:8080/latest
+- udp://64.225.54.237:8080 (beacons)
