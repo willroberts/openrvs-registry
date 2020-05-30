@@ -78,7 +78,7 @@ func CSVToServers(csv []byte) (map[string]Server, error) {
 // Every time the app starts up, it checks the file 'checkpoint.csv' to see if
 // it can pick up where it last left off. If this file does not exist, fall back
 // to 'seed.csv', which contains the initial seed list for the app.
-func LoadSeedServers() (map[string]Server, error) {
+func LoadServers() (map[string]Server, error) {
 	bytes, err := ioutil.ReadFile(CheckpointFile)
 	if err != nil {
 		log.Println("unable to read checkpoint.csv, falling back to seed.csv")

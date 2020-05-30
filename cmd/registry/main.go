@@ -17,12 +17,11 @@ var (
 
 func main() {
 	log.Println("loading seed servers")
-	seed, err := registry.LoadSeedServers()
+	servers, err := registry.LoadServers()
 	if err != nil {
 		log.Fatal(err)
 	}
-	servers = seed
-	log.Printf("there are now %d registered servers (confirm over http)", len(servers))
+	logServerCount()
 
 	// Regularly checkpoint servers to disk at checkpoint.csv. This file can be
 	// backed up at an OS level at regular intervals if desired.
@@ -94,5 +93,9 @@ func ProcessUDP(ip string, msg []byte) {
 		}
 	}
 
+	logServerCount()
+}
+
+func logServerCount() {
 	log.Printf("there are now %d registered servers (confirm over http)", len(servers))
 }
