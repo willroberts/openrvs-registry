@@ -17,7 +17,7 @@ const (
 	// CheckpointFile contains the latest server list, changing over time.
 	CheckpointFile = "checkpoint.csv"
 
-	csvHeaderLine = "name,ip,port,mode\n"
+	csvHeaderLine = "name,ip,port,mode"
 )
 
 // ServersToCSV converts our internal data to CSV format for OpenRVS clients.
@@ -61,7 +61,7 @@ func CSVToServers(csv []byte) (map[string]Server, error) {
 	trimmed := strings.TrimSuffix(string(csv), "\n")
 	lines := strings.Split(trimmed, "\n")
 	for _, line := range lines {
-		if line == csvHeaderLine {
+		if strings.HasPrefix(line, csvHeaderLine) {
 			continue
 		}
 		fields := strings.Split(line, ",")
