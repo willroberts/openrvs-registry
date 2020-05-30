@@ -40,6 +40,6 @@ which should not be necessary under normal circumstances. To do this:
 
 ```bash
 $ systemctl stop registry # stop the app
-$ vim checkpoint.csv # edit checkpoint.csv and/or seed.csv as desired
+$ vim checkpoint.csv # edit checkpoint.csv as desired
 $ systemctl start registry # start the app
 ```
