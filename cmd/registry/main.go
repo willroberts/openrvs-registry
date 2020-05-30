@@ -1,7 +1,3 @@
-// Temporary entrypoint for development. Convert to proper entrypoint later by
-// moving libraries into package registry.
-//todo: checkpoint allservers to disk every 5 mins
-//todo: load initial allservers from disk on init
 package main
 
 import (
@@ -9,15 +5,20 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"sort"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	beacon "github.com/ijemafe/openrvs-beacon"
 )
 
-const HealthCheckInterval = 1 * time.Minute
-const PassedCheckThreshold = 3
-const FailedCheckThreshold = 3
-const MaxFailedChecks = 2880 // 2 days.
+const (
+	HealthCheckInterval  = 1 * time.Minute
+	FailedCheckThreshold = 15    // Hide servers after being down 15 mins.
+	PassedCheckThreshold = 2     // Show servers again after passing 2 checks.
+	MaxFailedChecks      = 10080 // Prune servers from the list entirely after being down 7 days.
+)
 
 var typeMap = map[string]string{
 	// Raven Shield modes
@@ -47,8 +48,8 @@ var typeMap = map[string]string{
 
 // Temporary globals for development.
 var (
-	servers       []server
-	testservers   []server
+	servers       map[string]server
+	testservers   map[string]server
 	latestversion = []byte("v1.5")
 )
 
@@ -66,6 +67,8 @@ type server struct {
 }
 
 func main() {
+	servers = make(map[string]server, 0)
+	testservers = make(map[string]server, 0)
 	loadTestServers()
 
 	// Start listening on UDP/8080 for beacons.
@@ -81,10 +84,8 @@ func main() {
 		}
 		defer conn.Close()
 		b := make([]byte, 4096)
-		//rl := ratelimit.New(50) // Maximum requests per second before delaying reads.
 		log.Println("udp listener started")
 		for {
-			//rl.Take()
 			n, addr, err := conn.ReadFromUDP(b)
 			if err != nil {
 				log.Println("udp error:", err)
@@ -113,14 +114,38 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func serversToCSV(servers []server) []byte {
-	resp := "name,ip,port,mode\n"
-	for i, s := range servers {
-		resp += fmt.Sprintf("%s,%s,%d,%s", s.Name, s.IP, s.Port, s.GameMode)
-		if i != len(servers)-1 {
+// Converts our internal data to CSV format for OpenRVS clients.
+// Also handles sorting.
+func serversToCSV(servers map[string]server) []byte {
+	var alphaServers []string
+	var nonalphaServers []string
+
+	resp := "name,ip,port,mode\n" // CSV header line.
+
+	for _, s := range servers {
+		// Encode first letter of server name for sorting purposes.
+		var r rune
+		line := fmt.Sprintf("%s,%s,%d,%s", s.Name, s.IP, s.Port, s.GameMode)
+		utf8.EncodeRune([]byte{line[0]}, r)
+
+		if unicode.IsLetter(r) {
+			alphaServers = append(alphaServers, line)
+		} else {
+			nonalphaServers = append(nonalphaServers, line)
+		}
+	}
+
+	sort.Strings(alphaServers)
+	sort.Strings(nonalphaServers)
+	allservers := append(alphaServers, nonalphaServers...)
+
+	for i, s := range allservers {
+		resp += s
+		if i != len(allservers)-1 {
 			resp += "\n"
 		}
 	}
+
 	return []byte(resp)
 }
 
@@ -135,27 +160,22 @@ func parseUDPMessage(ip string, msg []byte) {
 		log.Println("failed to parse beacon for server", ip)
 	}
 
-	for _, s := range servers { //todo: use a map of "ip:port" keys
-		// When testing locally, key on Server Name instead of IP+Port.
-		if report.IPAddress == "127.0.0.1" {
-			if (s.Name == report.ServerName) && (s.Port == report.Port) {
-				return // don't parse udp message, only update healthcheck
-			}
-			continue
+	// When testing locally, key on Server Name instead of IP+Port.
+	if report.IPAddress == "127.0.0.1" {
+		servers[report.ServerName] = server{
+			Name:     report.ServerName,
+			IP:       report.IPAddress,
+			Port:     report.Port,
+			GameMode: typeMap[report.CurrentMode],
 		}
-		// End local testing code.
-
-		if (s.IP == report.IPAddress) && (s.Port == report.Port) {
-			return //don't parse udp message, only update healthcheck
+	} else {
+		servers[hostportToKey(report.IPAddress, report.Port)] = server{
+			Name:     report.ServerName,
+			IP:       report.IPAddress,
+			Port:     report.Port,
+			GameMode: typeMap[report.CurrentMode],
 		}
 	}
-
-	servers = append(servers, server{
-		Name:     report.ServerName,
-		IP:       report.IPAddress,
-		Port:     report.Port,
-		GameMode: gameModeToType(report.CurrentMode),
-	})
 
 	log.Printf("there are now %d registered servers (confirm over http)", len(servers))
 }
@@ -191,22 +211,30 @@ func healthcheck(s server) {
 	}
 }
 
+// Every time the app starts up, it checks the file 'checkpoint.csv' to see if
+// it can pick up where it last left off. If this file does not exist, fall back
+// to 'seed.csv', which contains the initial seed list for the app.
+func loadSeedServers() {
+
+}
+
 // Temporary test data.
 func loadTestServers() {
-	testservers = []server{
-		server{Name: "SMC Suppressed Stealth", IP: "185.24.221.23", Port: 7777,
-			GameMode: "coop", healthy: true},
-		server{Name: "DMM Tango Hunters", IP: "208.70.251.154", Port: 7777,
-			GameMode: "coop", healthy: true},
-		server{Name: "OBSOLETESUPERSTARS.COM", IP: "72.251.228.169", Port: 7777,
-			GameMode: "coop", healthy: true},
-		server{Name: "ALLR6 | Europe TH", IP: "5.9.50.39", Port: 8777,
-			GameMode: "coop", healthy: true},
-		server{Name: "~24/7 Deathmatch~", IP: "107.172.191.114", Port: 7777,
-			GameMode: "adv", healthy: true},
-		server{Name: "|COOP|SweServer :7777", IP: "94.255.250.173", Port: 7777,
-			GameMode: "coop", healthy: true},
+	testservers = map[string]server{
+		"185.24.221.23:7777": server{Name: "SMC Suppressed Stealth",
+			IP: "185.24.221.23", Port: 7777, GameMode: "coop", healthy: true},
+		"208.70.251.154:7777": server{Name: "DMM Tango Hunters",
+			IP: "208.70.251.154", Port: 7777, GameMode: "coop", healthy: true},
+		"72.251.228.169:7777": server{Name: "OBSOLETESUPERSTARS.COM",
+			IP: "72.251.228.169", Port: 7777, GameMode: "coop", healthy: true},
+		"5.9.50.39:8777": server{Name: "ALLR6 | Europe TH",
+			IP: "5.9.50.39", Port: 8777, GameMode: "coop", healthy: true},
+		"107.172.191.114:7777": server{Name: "~24/7 Deathmatch~",
+			IP: "107.172.191.114", Port: 7777, GameMode: "adv", healthy: true},
+		"94.255.250.173:7777": server{Name: "|COOP|SweServer :7777",
+			IP: "94.255.250.173", Port: 7777, GameMode: "coop", healthy: true},
 	}
+
 	log.Printf("loaded %d servers", len(testservers))
 }
 
@@ -233,6 +261,6 @@ func testUDP() {
 	}
 }
 
-func gameModeToType(m string) string {
-	return typeMap[m]
+func hostportToKey(host string, port int) string {
+	return fmt.Sprintf("%s:%d", host, port)
 }
