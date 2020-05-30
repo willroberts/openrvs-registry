@@ -15,6 +15,8 @@ type Server struct {
 	failedChecks int
 }
 
+// GameTypes contains a map of all active game types, mapping them to either
+// Adversarial or Cooperative mode identifiers 'adv' and 'coop'.
 var GameTypes = map[string]string{
 	// Raven Shield modes
 	"RGM_BombAdvMode":           "adv",  // Bomb
@@ -41,6 +43,7 @@ var GameTypes = map[string]string{
 	// Free Backup, Gas Alert, Intruder, Limited Seats, Virus Upload (all adv)
 }
 
-func HostportToKey(host string, port int) string {
-	return fmt.Sprintf("%s:%d", host, port)
+// HostportToKey generates a unique map key for a server using its IP and port.
+func HostportToKey(ip string, port int) string {
+	return fmt.Sprintf("%s:%d", ip, port)
 }

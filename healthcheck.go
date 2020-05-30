@@ -10,22 +10,30 @@ import (
 )
 
 const (
-	HealthCheckInterval  = 1 * time.Minute
-	FailedCheckThreshold = 15    // Hide servers after being down 15 mins.
-	PassedCheckThreshold = 2     // Show servers again after passing 2 checks.
-	MaxFailedChecks      = 10080 // Prune servers from the list entirely after being down 7 days.
+	// HealthCheckInterval determines the frequency of regular healthchecks.
+	HealthCheckInterval = 1 * time.Minute
+	// FailedCheckThreshold is used to hide servers after failing healthchecks.
+	FailedCheckThreshold = 15
+	// PassedCheckThreshold is used to show servers again after being marked unhealthy.
+	PassedCheckThreshold = 2
+	// MaxFailedChecks is used to prune servers from the list entirely.
+	MaxFailedChecks = 10080
 )
 
-func healthcheck(s Server) {
-	var failed bool
+// Healthcheck sends a UDP beacon, and returns true when a healthcheck succeeds.
+func Healthcheck(s Server) bool {
 	_, err := beacon.GetServerReport(s.IP, s.Port+1000)
 	if err != nil {
 		log.Println("healthcheck err:", err)
-		failed = true
+		return false
 	}
+	return true
+}
 
+// UpdateServerHealth contains logic for updating the server map.
+func UpdateServerHealth(s Server, succeeded bool) {
 	// Mark servers unhealthy after three failed healthchecks.
-	if failed {
+	if !succeeded {
 		s.passedChecks = 0
 		s.failedChecks++
 		if s.failedChecks >= FailedCheckThreshold {

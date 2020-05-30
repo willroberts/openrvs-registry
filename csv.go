@@ -12,12 +12,14 @@ import (
 )
 
 const (
-	SeedFile       = "seed.csv"
+	// SeedFile contains the initial server list to use.
+	SeedFile = "seed.csv"
+	// CheckpointFile contains the latest server list, changing over time.
 	CheckpointFile = "checkpoint.csv"
 )
 
-// Converts our internal data to CSV format for OpenRVS clients.
-// Also handles sorting.
+// ServersToCSV converts our internal data to CSV format for OpenRVS clients.
+// Also handles sorting, with special characters coming after alphabeticals.
 func ServersToCSV(servers map[string]Server) []byte {
 	var alphaServers []string
 	var nonalphaServers []string
@@ -51,6 +53,7 @@ func ServersToCSV(servers map[string]Server) []byte {
 	return []byte(resp)
 }
 
+// CSVToServers converts CSV (generally from local file) to a map of servers.
 func CSVToServers(csv []byte) (map[string]Server, error) {
 	servers := make(map[string]Server, 0)
 	lines := strings.Split(string(csv), "\n")
@@ -71,6 +74,7 @@ func CSVToServers(csv []byte) (map[string]Server, error) {
 	return servers, nil
 }
 
+// LoadSeedServers reads a CSV file from disk.
 // Every time the app starts up, it checks the file 'checkpoint.csv' to see if
 // it can pick up where it last left off. If this file does not exist, fall back
 // to 'seed.csv', which contains the initial seed list for the app.
@@ -92,6 +96,7 @@ func LoadSeedServers() (map[string]Server, error) {
 	return parsed, nil
 }
 
+// SaveCheckpoint writes the latest servers to disk.
 func SaveCheckpoint(servers map[string]Server) error {
 	return ioutil.WriteFile(CheckpointFile, ServersToCSV(servers), 0644)
 }
