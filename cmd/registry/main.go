@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net"
 	"net/http"
@@ -16,9 +17,14 @@ var (
 )
 
 func main() {
+	log.Println("openrvs-registry process started")
+
+	var dir string
+	flag.StringVar(&dir, "csvdir", "", "directory containing seed.csv and checkpoint.csv")
+
 	log.Println("loading seed servers")
 	var err error
-	servers, err = registry.LoadServers()
+	servers, err = registry.LoadServers(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,7 +36,7 @@ func main() {
 		for {
 			time.Sleep(checkpointInterval)
 			log.Println("saving servers to checkpoint.csv")
-			registry.SaveCheckpoint(servers)
+			registry.SaveServers(dir, servers)
 		}
 	}()
 
