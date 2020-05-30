@@ -17,7 +17,8 @@ var (
 
 func main() {
 	log.Println("loading seed servers")
-	servers, err := registry.LoadServers()
+	var err error
+	servers, err = registry.LoadServers()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -28,12 +29,16 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(checkpointInterval)
+			log.Println("saving servers to checkpoint.csv")
 			registry.SaveCheckpoint(servers)
 		}
 	}()
 
 	// Start listening on UDP/8080 for beacons.
 	go ListenUDP()
+
+	// Test automatic registration.
+	//go testUDP()
 
 	// Start listening on TCP/8080 for HTTP requests from OpenRVS clients.
 	http.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
@@ -76,21 +81,11 @@ func ProcessUDP(ip string, msg []byte) {
 		log.Println("failed to parse beacon for server", ip)
 	}
 
-	// When testing locally, key on Server Name instead of IP+Port.
-	if report.IPAddress == "127.0.0.1" {
-		servers[report.ServerName] = registry.Server{
-			Name:     report.ServerName,
-			IP:       report.IPAddress,
-			Port:     report.Port,
-			GameMode: registry.GameTypes[report.CurrentMode],
-		}
-	} else {
-		servers[registry.HostportToKey(report.IPAddress, report.Port)] = registry.Server{
-			Name:     report.ServerName,
-			IP:       report.IPAddress,
-			Port:     report.Port,
-			GameMode: registry.GameTypes[report.CurrentMode],
-		}
+	servers[registry.HostportToKey(report.IPAddress, report.Port)] = registry.Server{
+		Name:     report.ServerName,
+		IP:       report.IPAddress,
+		Port:     report.Port,
+		GameMode: registry.GameTypes[report.CurrentMode],
 	}
 
 	logServerCount()
@@ -98,4 +93,30 @@ func ProcessUDP(ip string, msg []byte) {
 
 func logServerCount() {
 	log.Printf("there are now %d registered servers (confirm over http)", len(servers))
+}
+
+// Pretend to be a server and replay the beacon. Useful for testing automatic
+// addition of new servers to the list when beacons are received.
+func testUDP() {
+	time.Sleep(5 * time.Second)
+	log.Printf("sending test udp beacon")
+
+	// Get a real report from a test server.
+	bytes, err := beacon.GetServerReport("64.225.54.237", 7777) //rs3tdm
+	if err != nil {
+		log.Println("testudp->get error:", err)
+		return
+	}
+	// Connect to our own app.
+	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8080})
+	if err != nil {
+		log.Println("testudp->dial error:", err)
+		return
+	}
+
+	// Replay the report, making it appear to come from the IP 127.0.0.1
+	if _, err = conn.Write(bytes); err != nil {
+		log.Println("testudp->write error:", err)
+		return
+	}
 }
