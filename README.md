@@ -1,5 +1,9 @@
 # openrvs-registry
 
+Automatic server registration for OpenRVS.
+
+For the client code, see [OpenRVS](https://github.com/OpenRVS-devs/OpenRVS).
+
 ## Features
 
 This app enables the following features in OpenRVS:
