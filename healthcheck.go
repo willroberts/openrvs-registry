@@ -16,11 +16,11 @@ const (
 	// socket.
 	HealthCheckTimeout = 5 * time.Second // Values below 3 lose data.
 	// FailedCheckThreshold is used to hide servers after failing healthchecks.
-	FailedCheckThreshold = 15 // 15 minutes
+	FailedCheckThreshold = 60 // 30 minutes
 	// PassedCheckThreshold is used to show servers again after being marked unhealthy.
 	PassedCheckThreshold = 1
 	// MaxFailedChecks is used to prune servers from the list entirely.
-	MaxFailedChecks = 10080 // 7 days
+	MaxFailedChecks = 5760 // 2 days
 )
 
 // SendHealthchecks queries the given servers and filters servers which are past

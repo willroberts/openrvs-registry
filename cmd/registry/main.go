@@ -14,7 +14,7 @@ import (
 var (
 	servers             = make(map[string]registry.Server, 0)
 	checkpointInterval  = 5 * time.Minute
-	healthcheckInterval = 10 * time.Second
+	healthcheckInterval = 30 * time.Second
 )
 
 func main() {
