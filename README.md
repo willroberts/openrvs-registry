@@ -37,7 +37,8 @@ Assuming a Windows development environment, there is a batch file to generate bu
 
 The Windows build is `registry.exe`, and the Linux build is simply `registry`. Run `registry.exe` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window.
 
-You can hit the HTTP URLs at `http://localhost:8080/<path>`, or send UDP beacons to `udp://localhost:8080`.
+You can now hit the HTTP URLs in your browser at `http://localhost:8080/<path>`,
+or send UDP beacons to `udp://localhost:8080` to test automatic registration.
 
 If you want to run the app from a different working directory, you can:
 
@@ -85,6 +86,12 @@ There is an existing deployment of this software here:
 If you need to stand up a new deployment:
 
 1. Spin up a Linux or Windows server
-1. Run the compiled software on the server, using some mechanism to keep the process running (`systemd` in Linux or `services.msc` in Windows)
-1. Direct the output of the program into a log file. In `systemd`, for example, you can set the value of `StandardOutput` to `file:/full/path/to/registry.log` under `[Service]` in order to send all logs to that file. Logs will contain all information about healthchecks, status changes, saving to and loading from disk, and any errors which might occur.
-1. Edit `OpenBeacon.uc` and change the host and port to the new registry server.
+1. Run the compiled software on the server, using some mechanism to keep the
+process running (`systemd` in Linux or `services.msc` in Windows)
+1. Direct the output of the program into a log file. In `systemd`, for example,
+you can set the value of `StandardOutput` to `file:/full/path/to/registry.log`
+under `[Service]` in order to send all logs to that file. Logs will contain all
+information about healthchecks, status changes, saving to and loading from disk,
+and any errors which might occur.
+1. Edit `OpenBeacon.uc` and change the host and port to the new registry server,
+or use `openrvs.ini` instead if that functionality has been added to the config.
