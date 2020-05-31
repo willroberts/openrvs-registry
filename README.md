@@ -42,7 +42,17 @@ Assuming a Windows development environment, there is a batch file to generate bu
 > build.bat
 ```
 
-The Windows build is `registry.exe`, and the Linux build is simply `registry`. Run `registry.exe` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window.
+The Windows build is `registry.exe`, and the Linux build is simply `registry`. Run `registry.exe` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window:
+
+```bash
+> registry.exe
+2020/05/30 23:35:27 openrvs-registry process started
+2020/05/30 23:35:27 loading servers from file
+2020/05/30 23:35:27 reading checkpoint file at checkpoint.csv
+2020/05/30 23:35:27 there are now 48 registered servers (confirm over http)
+2020/05/30 23:35:27 starting http listener
+2020/05/30 23:35:27 starting udp listener
+```
 
 You can now hit the HTTP URLs in your browser at `http://localhost:8080/<path>`,
 or send UDP beacons to `udp://localhost:8080` to test automatic registration.
