@@ -44,7 +44,13 @@ If you want to run locally without compiling a new build, you can:
 > go run main.go
 ```
 
-Tweak the code and repeat either set of steps above to iterate on changes.
+Now you can tweak the code and repeat either set of steps above to iterate on changes.
+
+#### Editing Code
+
+I strongly recommend [VSCode](https://code.visualstudio.com/) by Microsoft for writing Go code on Windows. It's free, and when you open a `.go` file for the first time, it will automatically prompt you to install the Go extension.
+
+The most useful buttons are in the top-left. From top to bottom: "Explorer" for organizing files in a repo, "Search" for finding strings across all files, and "Source Control" for the built-in Git integration. You can create branches, push, and pull from inside VSCode.
 
 ## Deployments
 
