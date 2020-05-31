@@ -2,6 +2,7 @@ package registry
 
 import "fmt"
 
+// Server contains all relevant fields for an individual game server.
 type Server struct {
 	Name     string
 	IP       string
@@ -11,6 +12,7 @@ type Server struct {
 	Health HealthStatus
 }
 
+// HealthStatus contains information needed to track whether a server is healthy.
 type HealthStatus struct {
 	Healthy      bool
 	Expired      bool
