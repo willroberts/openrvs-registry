@@ -13,31 +13,38 @@ import (
 )
 
 var (
-	servers             = make(map[string]registry.Server, 0)
-	lock                = sync.RWMutex{}
-	checkpointInterval  = 5 * time.Minute
-	healthcheckInterval = 30 * time.Second
+	servers             = make(map[string]registry.Server) // Stores all known servers.
+	lock                = sync.RWMutex{}                   // For safely accessing the server map.
+	checkpointInterval  = 5 * time.Minute                  // Save to disk this often.
+	healthcheckInterval = 30 * time.Second                 // Send healthchecks this often.
 )
 
 func main() {
 	log.Println("openrvs-registry process started")
 
 	// Allow setting CSV directory explicitly. If you set this, it must include
-	// a platform-dependent trailing slash.
+	// a platform-dependent trailing slash. For example, on Windows:
+	//     registry.exe -csvdir=C:\path\to\csv\files\\
 	var dir string
 	flag.StringVar(&dir, "csvdir", "", "directory containing seed.csv and checkpoint.csv")
 	flag.Parse()
 
-	log.Println("loading seed servers")
+	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
+	log.Println("loading servers from file")
 	var err error
 	servers, err = registry.LoadServers(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Log the number of servers loaded from file.
 	logServerCount()
 
 	// Regularly checkpoint servers to disk at checkpoint.csv. This file can be
 	// backed up at an OS level at regular intervals if desired.
+	// The go keyword launches a goroutine, which happens concurrently and does
+	// not block the current thread. For this reason, synchronization (such as
+	// with lock.Lock() below) is needed.
 	go func() {
 		for {
 			time.Sleep(checkpointInterval)
@@ -48,7 +55,7 @@ func main() {
 	}()
 
 	// Start listening on UDP/8080 for beacons.
-	go ListenUDP()
+	go listenUDP()
 
 	// Start sending healthchecks after registry.HealthCheckInterval time.
 	go func() {
@@ -61,26 +68,38 @@ func main() {
 	}()
 
 	// Test automatic registration.
+	// Uncomment to replay beacons to your development server.
 	//go testUDP()
 
-	// Start listening on TCP/8080 for HTTP requests from OpenRVS clients.
+	// Create an HTTP handler which returns healthy servers.
 	http.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(registry.ServersToCSV(registry.FilterHealthyServers(servers), false))
 	})
+
+	// Create an HTTP handler which returns all servers.
 	http.HandleFunc("/servers/all", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(registry.ServersToCSV(servers, false))
 	})
+
+	// Create an HTTP handler which returns all servers with detailed health status.
 	http.HandleFunc("/servers/debug", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(registry.ServersToCSV(servers, true))
 	})
+
+	// Create an HTTP handler which returns the latest release version from Github.
 	http.HandleFunc("/latest", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(registry.GetLatestReleaseVersion())
 	})
+
+	// Start listening on TCP/8080 for HTTP requests from OpenRVS clients.
 	log.Println("starting http listener")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func ListenUDP() {
+// ListenUDP creates a UDP socket on 0.0.0.0:8080 and configures it to listen.
+// In a blocking loop, continuously reads into a 4KB buffer, parses the source
+// IP and message body, and forward the information to the registry.
+func listenUDP() {
 	log.Println("starting udp listener")
 	addr, err := net.ResolveUDPAddr("udp", ":8080")
 	if err != nil {
@@ -99,18 +118,20 @@ func ListenUDP() {
 			continue
 		}
 		log.Println("received UDP packet from", addr.IP.String())
-		ProcessUDP(addr.IP.String(), b[0:n]) // IP and message body.
+		registerServer(addr.IP.String(), b[0:n]) // IP and message body.
 	}
 }
 
-// When we receive UDP traffic from OpenRVS Game Servers, parse the beacon,
-// healthcheck the server, and update the serverlist.
-func ProcessUDP(ip string, msg []byte) {
+// When we receive UDP traffic from OpenRVS Game Servers, parse the beacon and
+// update the serverlist.
+func registerServer(ip string, msg []byte) {
+	// Parses the UDP beacon from the OpenRVS server.
 	report, err := beacon.ParseServerReport(ip, msg)
 	if err != nil {
 		log.Println("failed to parse beacon for server", ip)
 	}
 
+	// Creates and saves a Server using the beacon data.
 	lock.Lock()
 	servers[registry.HostportToKey(report.IPAddress, report.Port)] = registry.Server{
 		Name:     report.ServerName,
@@ -120,9 +141,11 @@ func ProcessUDP(ip string, msg []byte) {
 	}
 	lock.Unlock()
 
+	// Logs the new server count.
 	logServerCount()
 }
 
+// Write the server count to the console.
 func logServerCount() {
 	log.Printf("there are now %d registered servers (confirm over http)", len(servers))
 }

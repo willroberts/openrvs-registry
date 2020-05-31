@@ -89,7 +89,7 @@ func UpdateHealthStatus(s Server) Server {
 // FilterHealthyServers iterates through a map of Servers, and returns a subset
 // maps of Servers which only contains the servers marked as being healthy.
 func FilterHealthyServers(servers map[string]Server) map[string]Server {
-	filtered := make(map[string]Server, 0)
+	filtered := make(map[string]Server)
 	for k, s := range servers {
 		if s.Health.Healthy {
 			filtered[k] = s // Copy to output map.
