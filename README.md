@@ -12,6 +12,24 @@ This app enables the following features in OpenRVS:
 - Automatically hiding unhealthy servers after a configurable number of failed healthchecks
 - Fetching the latest version from GitHub
 
+## How It Works
+
+When the app is first run, it looks for `seed.csv` as a source for the initial
+server list data.
+
+After populating the list in memory, the app begins sending healthchecks to each
+known server on a regular interval. It uses these healthchecks to hide unhealthy
+servers from the list (without fully removing them from memory; they continue
+to receive healthchecks and may return if they become healthy again).
+
+By default, healthchecks are sent every 30 seconds, and it takes 60 failed
+checks to hide a server from the list (equivalent to 30 minutes downtime). A
+single successful healthcheck will unhide the server.
+
+When the app receives a REPORT response on its UDP port, it parses the beacon
+format. If the server is already known, its information is updated. Otherwise,
+the server is instantly added to the list.
+
 ## Listeners
 
 It listens for HTTP requests on TCP port 8080, with the following endpoints:
@@ -74,6 +92,12 @@ If you want to run locally without compiling a new build, you can:
 
 Now you can tweak the code and repeat either set of steps above to iterate on changes.
 
+#### Editing Code
+
+I recommend [VSCode](https://code.visualstudio.com/) from Microsoft for writing Go code on Windows. It's free, and when you open a `.go` file for the first time, it will automatically prompt you to install the Go extension.
+
+The most useful buttons are in the top-left. From top to bottom: "Explorer" for organizing files in a repo, "Search" for finding strings across all files, and "Source Control" for the built-in Git integration. You can create branches, commit, push, and pull from inside VSCode.
+
 #### Navigating the Code
 
 Currently, there are five files containing Go code:
@@ -84,12 +108,6 @@ Currently, there are five files containing Go code:
 1. `healthcheck.go`: contains logic for hiding unhealthy servers
 1. `latest.go`: contains code for hitting the Github API
 1. `types.go`: contains definitions and utility code unlikely to change
-
-#### Editing Code
-
-I recommend [VSCode](https://code.visualstudio.com/) from Microsoft for writing Go code on Windows. It's free, and when you open a `.go` file for the first time, it will automatically prompt you to install the Go extension.
-
-The most useful buttons are in the top-left. From top to bottom: "Explorer" for organizing files in a repo, "Search" for finding strings across all files, and "Source Control" for the built-in Git integration. You can create branches, commit, push, and pull from inside VSCode.
 
 #### Logging Errors
 
