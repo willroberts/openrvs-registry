@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	beacon "github.com/ijemafe/openrvs-beacon"
@@ -13,8 +14,9 @@ import (
 
 var (
 	servers             = make(map[string]registry.Server, 0)
+	lock                = sync.RWMutex{}
 	checkpointInterval  = 5 * time.Minute
-	healthcheckInterval = 30 * time.Second
+	healthcheckInterval = 10 * time.Second //30 * time.Second
 )
 
 func main() {
@@ -40,7 +42,9 @@ func main() {
 		for {
 			time.Sleep(checkpointInterval)
 			log.Println("saving servers to checkpoint.csv")
+			lock.Lock()
 			registry.SaveServers(dir, servers)
+			lock.Unlock()
 		}
 	}()
 
@@ -51,7 +55,9 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(healthcheckInterval)
+			lock.Lock()
 			servers = registry.SendHealthchecks(servers)
+			lock.Unlock()
 		}
 	}()
 
@@ -103,12 +109,14 @@ func ProcessUDP(ip string, msg []byte) {
 		log.Println("failed to parse beacon for server", ip)
 	}
 
+	lock.Lock()
 	servers[registry.HostportToKey(report.IPAddress, report.Port)] = registry.Server{
 		Name:     report.ServerName,
 		IP:       report.IPAddress,
 		Port:     report.Port,
 		GameMode: registry.GameTypes[report.CurrentMode],
 	}
+	lock.Unlock()
 
 	logServerCount()
 }

@@ -8,7 +8,12 @@ type Server struct {
 	Port     int
 	GameMode string
 
+	Health HealthStatus
+}
+
+type HealthStatus struct {
 	Healthy      bool
+	Expired      bool
 	PassedChecks int
 	FailedChecks int
 }

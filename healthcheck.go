@@ -16,91 +16,77 @@ const (
 	// socket.
 	HealthCheckTimeout = 5 * time.Second // Values below 3 lose data.
 	// FailedCheckThreshold is used to hide servers after failing healthchecks.
-	FailedCheckThreshold = 60 // 30 minutes
+	FailedCheckThreshold = 3 // 30 minutes
 	// PassedCheckThreshold is used to show servers again after being marked unhealthy.
 	PassedCheckThreshold = 1
 	// MaxFailedChecks is used to prune servers from the list entirely.
 	MaxFailedChecks = 5760 // 2 days
 )
 
-// SendHealthchecks queries the given servers and filters servers which are past
-// the maximum number of failures.
+// SendHealthchecks ... ?
 func SendHealthchecks(servers map[string]Server) map[string]Server {
-	checked := make(map[string]Server, 0)
-
-	var wg sync.WaitGroup
-	var lock = sync.RWMutex{}
+	var (
+		checked = make(map[string]Server, 0)
+		wg      sync.WaitGroup
+		lock    = sync.RWMutex{}
+	)
 
 	for k, s := range servers {
+		wg.Add(1)
 		go func(k string, s Server) {
-			wg.Add(1)
-			var ok bool
-			if s, ok = UpdateServerHealth(s); ok {
-				lock.Lock()
-				checked[k] = s
-				lock.Unlock()
-			} else {
-				log.Println("removing unhealthy server after reaching maximum failure count:", servers[k])
+			updated := UpdateHealthStatus(s)
+			if updated.Health.Healthy {
 			}
+			lock.Lock()
+			checked[k] = updated // All servers are updated, healthy or not.
+			lock.Unlock()
 			wg.Done()
 		}(k, s)
 	}
 	wg.Wait()
 
-	//debug
-	log.Println("len(servers):", len(servers))
-	log.Println("len(checked):", len(checked))
-	log.Println("len(FilterHealthyServers(servers))", len(FilterHealthyServers(servers)))
-	log.Println("len(FilterHealthyServers(checked))", len(FilterHealthyServers(checked)))
-
-	log.Printf("out of %d servers, %d were healthy", len(servers),
-		len(FilterHealthyServers(checked)))
-
+	log.Println("healthy servers:", len(FilterHealthyServers(checked)), "out of", len(servers))
 	return checked
 }
 
-// UpdateServerHealth checks the health history of the given server, updating
-// its state if necessary. Its second return value is false when the server
-// should be deleted.
-func UpdateServerHealth(s Server) (Server, bool) {
-	// Mark servers unhealthy after three failed healthchecks.
-	if !IsHealthy(s) {
-		s.PassedChecks = 0
-		s.FailedChecks++
-		if s.FailedChecks >= FailedCheckThreshold {
-			s.Healthy = false
+// UpdateHealthStatus modifies and returns an object according to a healthcheck
+// result.
+func UpdateHealthStatus(s Server) Server {
+	var failed bool
+	if _, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout); err != nil {
+		failed = true // No need to log connection refused, timeout, etc.
+	}
+
+	if failed {
+		s.Health.PassedChecks = 0
+		s.Health.FailedChecks++
+		if s.Health.FailedChecks == FailedCheckThreshold {
+			log.Println("server is now unhealthy:", s.IP, s.Port)
+			s.Health.Healthy = false
 		}
-		if s.FailedChecks >= MaxFailedChecks {
-			return s, false // should be deleted
+		if s.Health.FailedChecks >= MaxFailedChecks {
+			s.Health.Expired = true
 		}
-		return s, true // ok
+		return s
 	}
 
 	// Healthcheck succeeded.
-	s.PassedChecks++
-	s.FailedChecks = 0
+	s.Health.PassedChecks++
+	s.Health.FailedChecks = 0
 
 	// Mark unhealthy servers healthy again after three successful checks.
-	if !s.Healthy && s.PassedChecks >= PassedCheckThreshold {
-		s.Healthy = true
+	if !s.Health.Healthy && s.Health.PassedChecks >= PassedCheckThreshold {
+		s.Health.Healthy = true
+		log.Println("server is now healthy:", s.IP, s.Port)
 	}
 
-	return s, true // ok
-}
-
-// IsHealthy sends a UDP beacon, and returns true when a healthcheck succeeds.
-func IsHealthy(s Server) bool {
-	if _, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout); err != nil {
-		return false
-	}
-
-	return true
+	return s
 }
 
 func FilterHealthyServers(servers map[string]Server) map[string]Server {
 	filtered := make(map[string]Server, 0)
 	for k, s := range servers {
-		if s.Healthy {
+		if s.Health.Healthy {
 			filtered[k] = s
 		}
 	}
