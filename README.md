@@ -4,8 +4,9 @@
 
 This app enables the following features in OpenRVS:
 
+- Automatically registering new OpenRVS servers as soon as they are started, with no human intervention
+- Automatically hiding unhealthy servers after a configurable number of failed healthchecks
 - Fetching the latest version from GitHub
-- Automatically updating a server list, based on active, healthy servers
 
 ## Listeners
 
