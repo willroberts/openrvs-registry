@@ -56,6 +56,17 @@ If you want to run locally without compiling a new build, you can:
 
 Now you can tweak the code and repeat either set of steps above to iterate on changes.
 
+#### Navigating the Code
+
+Currently, there are five files containing Go code:
+
+1. `cmd/registry/main.go`: the primary code. starts the http and udp listeners,
+	schedules disk checkpointing, and schedules healthchecks.
+1. `csv.go`: contains code for converting CSV to Server objects and vice versa
+1. `healthcheck.go`: contains logic for hiding unhealthy servers
+1. `latest.go`: contains code for hitting the Github API
+1. `types.go`: contains definitions and utility code unlikely to change
+
 #### Editing Code
 
 I recommend [VSCode](https://code.visualstudio.com/) by Microsoft for writing Go code on Windows. It's free, and when you open a `.go` file for the first time, it will automatically prompt you to install the Go extension.
