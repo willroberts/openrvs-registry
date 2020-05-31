@@ -24,6 +24,8 @@ It listens for OpenRVS beacons on UDP port 8080, for registration and health che
 
 ## Local Development
 
+This repo uses [Go](https://golang.org/), a modern, cross-platform, compiled, garbage-collected, statically-typed programming language with an extensive standard library.
+
 #### Initial Setup
 
 1. Download and install the Go programming language for your OS here: https://golang.org/doc/install
@@ -75,7 +77,7 @@ Currently, there are five files containing Go code:
 
 #### Editing Code
 
-I recommend [VSCode](https://code.visualstudio.com/) by Microsoft for writing Go code on Windows. It's free, and when you open a `.go` file for the first time, it will automatically prompt you to install the Go extension.
+I recommend [VSCode](https://code.visualstudio.com/) from Microsoft for writing Go code on Windows. It's free, and when you open a `.go` file for the first time, it will automatically prompt you to install the Go extension.
 
 The most useful buttons are in the top-left. From top to bottom: "Explorer" for organizing files in a repo, "Search" for finding strings across all files, and "Source Control" for the built-in Git integration. You can create branches, commit, push, and pull from inside VSCode.
 
