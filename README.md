@@ -37,6 +37,8 @@ Assuming a Windows development environment, there is a batch file to generate bu
 
 The Windows build is `registry.exe`, and the Linux build is simply `registry`. Double click the `exe` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window.
 
+You can hit the HTTP URLs at `http://localhost:8080/<path>`, or send UDP beacons to `udp://localhost:8080`.
+
 If you want to run locally without compiling a new build, you can:
 
 ```bash
