@@ -40,7 +40,7 @@ func main() {
 	// Log the number of servers loaded from file.
 	logServerCount()
 
-	// Regularly checkpoint servers to disk at checkpoint.csv. This file can be
+	// Regularly checkpoint servers to disk in a new thread. This file can be
 	// backed up at an OS level at regular intervals if desired.
 	// The go keyword launches a goroutine, which happens concurrently and does
 	// not block the current thread. For this reason, synchronization (such as
@@ -54,10 +54,10 @@ func main() {
 		}
 	}()
 
-	// Start listening on UDP/8080 for beacons.
+	// Start listening on UDP/8080 for beacons in a new thread.
 	go listenUDP()
 
-	// Start sending healthchecks after registry.HealthCheckInterval time.
+	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
 		for {
 			time.Sleep(healthcheckInterval)

@@ -30,12 +30,13 @@ const (
 func SendHealthchecks(servers map[string]Server) map[string]Server {
 	var (
 		checked = make(map[string]Server, 0) // Output map.
-		wg      sync.WaitGroup               // For tracking the UDP beacons.
+		wg      sync.WaitGroup               // For synchronizing the UDP beacons.
 		lock    = sync.RWMutex{}             // For safely accessing checked map.
 	)
 
 	for k, s := range servers {
 		wg.Add(1) // Add an item to wait for.
+		// Kick off this work in a new thread.
 		go func(k string, s Server) {
 			updated := UpdateHealthStatus(s) // Retrieve updated health status.
 			lock.Lock()                      // Prevent other access to checked map (will block).
