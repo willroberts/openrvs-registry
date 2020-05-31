@@ -35,9 +35,17 @@ Assuming a Windows development environment, there is a batch file to generate bu
 > build.bat
 ```
 
-The Windows build is `registry.exe`, and the Linux build is simply `registry`. Double click the `exe` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window.
+The Windows build is `registry.exe`, and the Linux build is simply `registry`. Run `registry.exe` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window.
 
 You can hit the HTTP URLs at `http://localhost:8080/<path>`, or send UDP beacons to `udp://localhost:8080`.
+
+If you want to run the app from a different working directory, you can:
+
+```bash
+> registry.exe -csvdir=C:\path\to\csv\files\\
+```
+
+The trailing slash must be included, and on Windows there must be two (since `\` is typically an escape character). On Linux, use forward slashes instead.
 
 If you want to run locally without compiling a new build, you can:
 
