@@ -60,10 +60,10 @@ func main() {
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
 		for {
-			time.Sleep(healthcheckInterval)
 			lock.Lock()
 			servers = registry.SendHealthchecks(servers)
 			lock.Unlock()
+			time.Sleep(healthcheckInterval)
 		}
 	}()
 

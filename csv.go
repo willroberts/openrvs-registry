@@ -93,7 +93,6 @@ func CSVToServers(csv []byte) (map[string]Server, error) {
 			IP:       fields[1],
 			Port:     port,
 			GameMode: strings.TrimSuffix(fields[3], "\n"),
-			Health:   HealthStatus{Healthy: true},
 		}
 		servers[HostportToKey(s.IP, s.Port)] = s
 	}
