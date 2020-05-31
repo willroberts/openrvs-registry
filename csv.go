@@ -22,7 +22,7 @@ const (
 
 // ServersToCSV converts our internal data to CSV format for OpenRVS clients.
 // Also handles sorting, with special characters coming after alphabeticals.
-func ServersToCSV(servers map[string]Server) []byte {
+func ServersToCSV(servers map[string]Server, debug bool) []byte {
 	var alphaServers []string
 	var nonalphaServers []string
 
@@ -31,7 +31,14 @@ func ServersToCSV(servers map[string]Server) []byte {
 	for _, s := range servers {
 		// Encode first letter of server name for sorting purposes.
 		var r rune
-		line := fmt.Sprintf("%s,%s,%d,%s", s.Name, s.IP, s.Port, s.GameMode)
+		var line string
+		if debug {
+			line = fmt.Sprintf("%s,%s,%d,%s,healthy=%v,expired=%v,passed=%d,failed=%d",
+				s.Name, s.IP, s.Port, s.GameMode, s.Health.Healthy, s.Health.Expired,
+				s.Health.PassedChecks, s.Health.FailedChecks)
+		} else {
+			line = fmt.Sprintf("%s,%s,%d,%s", s.Name, s.IP, s.Port, s.GameMode)
+		}
 		utf8.EncodeRune([]byte{line[0]}, r)
 
 		if unicode.IsLetter(r) {
@@ -115,7 +122,7 @@ func LoadServers(dir string) (map[string]Server, error) {
 func SaveServers(dir string, servers map[string]Server) error {
 	p := getPath(dir, CheckpointFile)
 	log.Println("saving checkpoint file to", p)
-	return ioutil.WriteFile(p, ServersToCSV(servers), 0644)
+	return ioutil.WriteFile(p, ServersToCSV(servers, false), 0644)
 }
 
 func getPath(dir string, file string) string {

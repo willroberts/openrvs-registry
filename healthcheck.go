@@ -63,7 +63,7 @@ func UpdateHealthStatus(s Server) Server {
 			s.Health.Healthy = false
 		}
 		if s.Health.FailedChecks >= MaxFailedChecks {
-			s.Health.Expired = true
+			s.Health.Expired = true // TODO: Prune expired servers.
 		}
 		return s
 	}

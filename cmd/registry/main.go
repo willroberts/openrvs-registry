@@ -41,7 +41,6 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(checkpointInterval)
-			log.Println("saving servers to checkpoint.csv")
 			lock.Lock()
 			registry.SaveServers(dir, servers)
 			lock.Unlock()
@@ -66,10 +65,13 @@ func main() {
 
 	// Start listening on TCP/8080 for HTTP requests from OpenRVS clients.
 	http.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(registry.ServersToCSV(registry.FilterHealthyServers(servers)))
+		w.Write(registry.ServersToCSV(registry.FilterHealthyServers(servers), false))
 	})
 	http.HandleFunc("/servers/all", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(registry.ServersToCSV(servers))
+		w.Write(registry.ServersToCSV(servers, false))
+	})
+	http.HandleFunc("/servers/debug", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(registry.ServersToCSV(servers, true))
 	})
 	http.HandleFunc("/latest", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(registry.GetLatestReleaseVersion())
