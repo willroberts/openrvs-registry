@@ -9,6 +9,7 @@ import (
 	beacon "github.com/ijemafe/openrvs-beacon"
 )
 
+// FIXME: Make these configurable.
 const (
 	// HealthCheckInterval determines the frequency of regular healthchecks.
 	HealthCheckInterval = 1 * time.Minute
