@@ -112,7 +112,7 @@ func testUDP() {
 	log.Printf("sending test udp beacon")
 
 	// Get a real report from a test server.
-	bytes, err := beacon.GetServerReport("64.225.54.237", 7777) //rs3tdm
+	bytes, err := beacon.GetServerReport("64.225.54.237", 7777, 3*time.Second) //rs3tdm
 	if err != nil {
 		log.Println("testudp->get error:", err)
 		return
