@@ -3,16 +3,14 @@ package registry
 import "fmt"
 
 type Server struct {
-	// Fields exposed to clients.
 	Name     string
 	IP       string
 	Port     int
 	GameMode string
 
-	// Internal fields.
-	healthy      bool
-	passedChecks int
-	failedChecks int
+	Healthy      bool
+	PassedChecks int
+	FailedChecks int
 }
 
 // GameTypes contains a map of all active game types, mapping them to either
