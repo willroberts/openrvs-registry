@@ -9,7 +9,7 @@ This repo uses [Go](https://golang.org/), a modern, cross-platform, concurrent, 
 1. Make sure the environment variable `GOPATH` is set to the above directory
 1. Try to download openrvs-registry with `go get github.com/ijemafe/openrvs-registry` on the command line. Go has tight coupling with Git, and this clones the repository under the hood
 
-## Building and Running
+## Building the Code
 
 Assuming a Windows development environment, there is a batch file to generate builds for both 64-bit Windows and 64-bit Linux at the same time:
 
@@ -18,7 +18,11 @@ Assuming a Windows development environment, there is a batch file to generate bu
 > build.bat
 ```
 
-The Windows build is `registry.exe`, and the Linux build is simply `registry`. Run `registry.exe` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window:
+The Windows build is `registry.exe`, and the Linux build is simply `registry`.
+
+## Running the Code
+
+Run `registry.exe` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window:
 
 ```bash
 > registry.exe
