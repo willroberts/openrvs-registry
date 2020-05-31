@@ -16,7 +16,7 @@ const (
 	// socket.
 	HealthCheckTimeout = 5 * time.Second // Values below 3 lose data.
 	// FailedCheckThreshold is used to hide servers after failing healthchecks.
-	FailedCheckThreshold = 3 // 30 minutes
+	FailedCheckThreshold = 60 // 30 minutes
 	// PassedCheckThreshold is used to show servers again after being marked unhealthy.
 	PassedCheckThreshold = 1
 	// MaxFailedChecks is used to prune servers from the list entirely.
@@ -35,8 +35,6 @@ func SendHealthchecks(servers map[string]Server) map[string]Server {
 		wg.Add(1)
 		go func(k string, s Server) {
 			updated := UpdateHealthStatus(s)
-			if updated.Health.Healthy {
-			}
 			lock.Lock()
 			checked[k] = updated // All servers are updated, healthy or not.
 			lock.Unlock()
