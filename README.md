@@ -30,6 +30,9 @@ When the app receives a REPORT response on its UDP port, it parses the beacon
 format. If the server is already known, its information is updated. Otherwise,
 the server is instantly added to the list.
 
+Since OpenRVS v1.5, servers automatically send this REPORT beacon on startup
+to a server running this app.
+
 ## Listeners
 
 There is a TCP listener for HTTP requests on port 8080, with the following endpoints:
