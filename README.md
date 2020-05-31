@@ -79,6 +79,17 @@ I recommend [VSCode](https://code.visualstudio.com/) by Microsoft for writing Go
 
 The most useful buttons are in the top-left. From top to bottom: "Explorer" for organizing files in a repo, "Search" for finding strings across all files, and "Source Control" for the built-in Git integration. You can create branches, commit, push, and pull from inside VSCode.
 
+#### Logging Errors
+
+Whenever a function returns an `error`, you should log it:
+
+```go
+result, err := doSomething()
+if err != nil {
+	log.Println("there was an error:", err)
+}
+```
+
 ## Deployments
 
 There is an existing deployment of this software here:
