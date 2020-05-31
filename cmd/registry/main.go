@@ -131,6 +131,11 @@ func registerServer(ip string, msg []byte) {
 		log.Println("failed to parse beacon for server", ip)
 	}
 
+	// Validate input, checking for required fields.
+	if (report.ServerName == "") || (report.Port == 0) || (report.CurrentMode == "") {
+		return // Insufficient data; nothing to register.
+	}
+
 	// Creates and saves a Server using the beacon data.
 	lock.Lock()
 	servers[registry.HostportToKey(report.IPAddress, report.Port)] = registry.Server{
