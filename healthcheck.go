@@ -29,12 +29,16 @@ func SendHealthchecks(servers map[string]Server) map[string]Server {
 	checked := make(map[string]Server, 0)
 
 	var wg sync.WaitGroup
+	var lock = sync.RWMutex{}
+
 	for k, s := range servers {
 		go func(k string, s Server) {
 			wg.Add(1)
 			var ok bool
 			if s, ok = UpdateServerHealth(s); ok {
+				lock.Lock()
 				checked[k] = s
+				lock.Unlock()
 			} else {
 				log.Println("removing unhealthy server after reaching maximum failure count:", servers[k])
 			}
