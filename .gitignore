@@ -1,3 +1,6 @@
 # Binaries (Win and Linux)
 registry.exe
 cmd/registry/registry
+
+# Temporary data
+cmd/registry/checkpoint.csv

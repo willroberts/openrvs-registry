@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	servers            = make(map[string]registry.Server, 0)
-	checkpointInterval = 5 * time.Minute
+	servers             = make(map[string]registry.Server, 0)
+	checkpointInterval  = 5 * time.Minute
+	healthcheckInterval = 10 * time.Second
 )
 
 func main() {
@@ -46,11 +47,22 @@ func main() {
 	// Start listening on UDP/8080 for beacons.
 	go ListenUDP()
 
+	// Start sending healthchecks after registry.HealthCheckInterval time.
+	go func() {
+		for {
+			time.Sleep(healthcheckInterval)
+			servers = registry.SendHealthchecks(servers)
+		}
+	}()
+
 	// Test automatic registration.
 	//go testUDP()
 
 	// Start listening on TCP/8080 for HTTP requests from OpenRVS clients.
 	http.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(registry.ServersToCSV(registry.FilterHealthyServers(servers)))
+	})
+	http.HandleFunc("/servers/all", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(registry.ServersToCSV(servers))
 	})
 	http.HandleFunc("/latest", func(w http.ResponseWriter, r *http.Request) {

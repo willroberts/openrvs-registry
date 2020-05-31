@@ -4,6 +4,7 @@ package registry
 
 import (
 	"log"
+	"sync"
 	"time"
 
 	beacon "github.com/ijemafe/openrvs-beacon"
@@ -11,10 +12,9 @@ import (
 
 // FIXME: Make these configurable.
 const (
-	// HealthCheckInterval determines the frequency of regular healthchecks.
-	HealthCheckInterval = 1 * time.Minute
-	// HealthCheckTimeout
-	HealthCheckTimeout = 3 * time.Second
+	// HealthCheckTimeout is the amount of time to wait before closing the UDP
+	// socket.
+	HealthCheckTimeout = 5 * time.Second // Values below 3 lose data.
 	// FailedCheckThreshold is used to hide servers after failing healthchecks.
 	FailedCheckThreshold = 15 // 15 minutes
 	// PassedCheckThreshold is used to show servers again after being marked unhealthy.
@@ -23,36 +23,29 @@ const (
 	MaxFailedChecks = 10080 // 7 days
 )
 
-func FilterHealthyServers(servers map[string]Server) map[string]Server {
-	filtered := make(map[string]Server, 0)
-	for k, s := range servers {
-		if s.Healthy {
-			filtered[k] = s
-		}
-	}
-	return filtered
-}
-
-// SendHealthchecks queries the given servers and expires servers which are past
+// SendHealthchecks queries the given servers and filters servers which are past
 // the maximum number of failures.
-func SendHealthchecks(servers map[string]Server) {
-	for {
-		time.Sleep(HealthCheckInterval)
-		keysToDelete := make([]string, 0)
-		for k, s := range servers {
+func SendHealthchecks(servers map[string]Server) map[string]Server {
+	checked := make(map[string]Server, 0)
+
+	var wg sync.WaitGroup
+	for k, s := range servers {
+		go func(k string, s Server) {
+			wg.Add(1)
 			var ok bool
-			servers[k], ok = UpdateServerHealth(s) // Overwrite self.
-			if !ok {
-				keysToDelete = append(keysToDelete, k)
+			if s, ok = UpdateServerHealth(s); ok {
+				checked[k] = s
+			} else {
+				log.Println("removing unhealthy server after reaching maximum failure count:", servers[k])
 			}
-		}
-		for _, k := range keysToDelete {
-			// Log and remove from memory.
-			// No need to store, since they will automatically register again.
-			log.Println("removing unhealthy server after 7 days:", servers[k])
-			delete(servers, k)
-		}
+			wg.Done()
+		}(k, s)
 	}
+	wg.Wait()
+
+	log.Printf("out of %d servers, %d were healthy", len(servers), len(FilterHealthyServers(checked)))
+
+	return checked
 }
 
 // UpdateServerHealth checks the health history of the given server, updating
@@ -86,10 +79,21 @@ func UpdateServerHealth(s Server) (Server, bool) {
 
 // IsHealthy sends a UDP beacon, and returns true when a healthcheck succeeds.
 func IsHealthy(s Server) bool {
-	_, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout)
-	if err != nil {
-		log.Printf("server %s:%d failed healthcheck: %v", s.IP, s.Port, err)
+	if _, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout); err != nil {
+		//log.Println("health check failed for", s.IP, s.Port, ":", err)
 		return false
 	}
+
+	//log.Println("health check succeeded for", s.IP, s.Port)
 	return true
+}
+
+func FilterHealthyServers(servers map[string]Server) map[string]Server {
+	filtered := make(map[string]Server, 0)
+	for k, s := range servers {
+		if s.Healthy {
+			filtered[k] = s
+		}
+	}
+	return filtered
 }
