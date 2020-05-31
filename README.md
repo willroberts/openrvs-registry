@@ -131,7 +131,7 @@ There is an existing deployment of this software here:
 - http://64.225.54.237:8080/latest
 - udp://64.225.54.237:8080 (beacons)
 
-If you need to stand up a new deployment:
+If you'd like to stand up a new deployment:
 
 1. Spin up a Linux or Windows server
 1. Run the compiled software on the server, using some mechanism to keep the
