@@ -88,7 +88,7 @@ func UpdateServerHealth(s Server) (Server, bool) {
 func IsHealthy(s Server) bool {
 	_, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout)
 	if err != nil {
-		log.Println("healthcheck err:", err)
+		log.Printf("server %s:%d failed healthcheck: %v", s.IP, s.Port, err)
 		return false
 	}
 	return true
