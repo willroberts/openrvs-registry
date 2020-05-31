@@ -58,6 +58,6 @@ There is an existing deployment of this software here:
 If you need to stand up a new deployment:
 
 1. Spin up a Linux or Windows server
-1. Run the compiled softwware on the server, using some mechanism to keep the process running (`systemd` in Linux or `services.msc` in Windows)
+1. Run the compiled software on the server, using some mechanism to keep the process running (`systemd` in Linux or `services.msc` in Windows)
 1. Direct the output of the program into a log file. In `systemd`, for example, you can set the value of `StandardOutput` to `file:/full/path/to/registry.log` under `[Service]` in order to send all logs to that file. Logs will contain all information about healthchecks, status changes, saving to and loading from disk, and any errors which might occur.
 1. Edit `OpenBeacon.uc` and change the host and port to the new registry server.
