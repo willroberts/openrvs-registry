@@ -24,7 +24,7 @@ It listens for OpenRVS beacons on UDP port 8080, for registration and health che
 
 ## Local Development
 
-This repo uses [Go](https://golang.org/), a modern, cross-platform, compiled, garbage-collected, statically-typed programming language with an extensive standard library.
+This repo uses [Go](https://golang.org/), a modern, cross-platform, compiled, garbage-collected, statically-typed programming language with an [extensive standard library](https://golang.org/pkg/#stdlib).
 
 #### Initial Setup
 
