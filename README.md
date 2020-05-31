@@ -32,13 +32,13 @@ the server is instantly added to the list.
 
 ## Listeners
 
-It listens for HTTP requests on TCP port 8080, with the following endpoints:
+There is a TCP listener for HTTP requests on port 8080, with the following endpoints:
 - `/latest` returns the latest OpenRVS version from GitHub
 - `/servers` returns a CSV list of game servers to OpenRVS clients
 - `/servers/all` returns all servers, including unhealthy servers
 - `/servers/debug` returns all servers with detailed health status information
 
-It listens for OpenRVS beacons on UDP port 8080, for registration and health checking.
+There is also a UDP listener for OpenRVS beacons on port 8080, for registration and health checking.
 
 ## Local Development
 
@@ -49,7 +49,7 @@ This repo uses [Go](https://golang.org/), a modern, cross-platform, compiled, ga
 1. Download and install the Go programming language for your OS here: https://golang.org/doc/install
 1. Create a directory to contain all Go code, such as `%USERPROFILE%\go` (recommended)
 1. Make sure the environment variable `GOPATH` is set to the above directory
-1. Try to download openrvs-registry with `go get github.com/ijemafe/openrvs-registry` on the command line
+1. Try to download openrvs-registry with `go get github.com/ijemafe/openrvs-registry` on the command line. Go has tight coupling with Git, and this clones the repository under the hood
 
 #### Building and Running
 
@@ -98,6 +98,8 @@ I recommend [VSCode](https://code.visualstudio.com/) from Microsoft for writing 
 
 The most useful buttons are in the top-left. From top to bottom: "Explorer" for organizing files in a repo, "Search" for finding strings across all files, and "Source Control" for the built-in Git integration. You can create branches, commit, push, and pull from inside VSCode.
 
+In the `File` menu, click `Open Folder` and select `openrvs-registry`. This will automatically detect the Git repository.
+
 #### Navigating the Code
 
 Currently, there are five files containing Go code:
@@ -139,5 +141,5 @@ you can set the value of `StandardOutput` to `file:/full/path/to/registry.log`
 under `[Service]` in order to send all logs to that file. Logs will contain all
 information about healthchecks, status changes, saving to and loading from disk,
 and any errors which might occur.
-1. Edit `OpenBeacon.uc` and change the host and port to the new registry server,
-or use `openrvs.ini` instead if that functionality has been added to the config.
+1. Edit `openrvs.ini` and change `ServerURL` to your server's IP (followed by
+`:8080`) and `ServerListURL` to `servers`.
