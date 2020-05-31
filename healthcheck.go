@@ -47,7 +47,8 @@ func SendHealthchecks(servers map[string]Server) map[string]Server {
 	}
 	wg.Wait()
 
-	log.Printf("out of %d servers, %d were healthy", len(servers), len(FilterHealthyServers(checked)))
+	log.Printf("out of %d servers, %d were healthy", len(servers),
+		len(FilterHealthyServers(checked)))
 
 	return checked
 }
@@ -84,11 +85,9 @@ func UpdateServerHealth(s Server) (Server, bool) {
 // IsHealthy sends a UDP beacon, and returns true when a healthcheck succeeds.
 func IsHealthy(s Server) bool {
 	if _, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout); err != nil {
-		//log.Println("health check failed for", s.IP, s.Port, ":", err)
 		return false
 	}
 
-	//log.Println("health check succeeded for", s.IP, s.Port)
 	return true
 }
 
