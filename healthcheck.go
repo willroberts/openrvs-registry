@@ -47,6 +47,12 @@ func SendHealthchecks(servers map[string]Server) map[string]Server {
 	}
 	wg.Wait()
 
+	//debug
+	log.Println("len(servers):", len(servers))
+	log.Println("len(checked):", len(checked))
+	log.Println("len(FilterHealthyServers(servers))", len(FilterHealthyServers(servers)))
+	log.Println("len(FilterHealthyServers(checked))", len(FilterHealthyServers(checked)))
+
 	log.Printf("out of %d servers, %d were healthy", len(servers),
 		len(FilterHealthyServers(checked)))
 

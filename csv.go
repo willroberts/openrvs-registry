@@ -78,6 +78,7 @@ func CSVToServers(csv []byte) (map[string]Server, error) {
 			IP:       fields[1],
 			Port:     port,
 			GameMode: fields[3],
+			Healthy:  true,
 		}
 		servers[HostportToKey(s.IP, s.Port)] = s
 	}
