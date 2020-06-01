@@ -26,7 +26,7 @@ By default, healthchecks are sent every 30 seconds, and it takes 60 failed
 checks to hide a server from the list (equivalent to 30 minutes downtime). A
 single successful healthcheck will unhide the server.
 
-Since OpenRVS v1.5, servers automatically send this REPORT beacon on startup
+Since OpenRVS v1.5, servers automatically send a REPORT beacon on startup
 to a server running this app. When the app receives a REPORT response on its
 UDP port, it parses the beacon format. If the server is already known, its
 information is updated. Otherwise, the server is instantly added to the list.
