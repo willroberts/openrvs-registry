@@ -27,9 +27,9 @@ checks to hide a server from the list (equivalent to 30 minutes downtime). A
 single successful healthcheck will unhide the server.
 
 Since OpenRVS v1.5, servers automatically send a REPORT beacon on startup
-to a server running this app. When the app receives a REPORT response on its
-UDP port, it parses the beacon format. If the server is already known, its
-information is updated. Otherwise, the server is instantly added to the list.
+to a server running this app. When the app receives a beacon on its
+UDP port, the information for that IP and port is updated. If the server is not
+yet known, it is automatically added to the list.
 
 ## Listeners
 
