@@ -17,6 +17,13 @@ var (
 	lock                = sync.RWMutex{}                   // For safely accessing the server map.
 	checkpointInterval  = 5 * time.Minute                  // Save to disk this often.
 	healthcheckInterval = 30 * time.Second                 // Send healthchecks this often.
+
+	localNetworks = []string{
+		"127.0.0.0/8",
+		"10.0.0.0/8",
+		"172.16.0.0/12",
+		"192.168.0.0/16",
+	}
 )
 
 func main() {
@@ -125,6 +132,15 @@ func listenUDP() {
 // When we receive UDP traffic from OpenRVS Game Servers, parse the beacon and
 // update the serverlist.
 func registerServer(ip string, msg []byte) {
+	// Reject traffic from LAN servers.
+	for _, n := range localNetworks {
+		_, sub, _ := net.ParseCIDR(n)
+		if sub.Contains(net.ParseIP(ip)) {
+			log.Println("skipping server with local ip:", ip)
+			return
+		}
+	}
+
 	// Parses the UDP beacon from the OpenRVS server.
 	report, err := beacon.ParseServerReport(ip, msg)
 	if err != nil {
