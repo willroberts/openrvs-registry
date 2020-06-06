@@ -100,7 +100,7 @@ func main() {
 
 	// Start listening on TCP/8080 for HTTP requests from OpenRVS clients.
 	log.Println("starting http listener")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
 }
 
 // ListenUDP creates a UDP socket on 0.0.0.0:8080 and configures it to listen.
