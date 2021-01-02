@@ -47,8 +47,8 @@ There is an existing deployment of this software at http://64.225.54.237/servers
 
 If you'd like to stand up a new deployment:
 
-1. Compile `openrvs-registry` with `build.bat` as described in the developer
-docs.
+1. Compile `openrvs-registry` with `build.bat` as described in [the developer
+docs](DOCS.md).
 1. Spin up a Linux or Windows server
 1. Populate `seed.csv` based on the copy in this repo to choose the initial set
 of servers. Put this file on the server alongside the compiled build.
