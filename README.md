@@ -43,13 +43,7 @@ There is also a UDP listener for OpenRVS beacons on port 8080, for registration 
 
 ## Deployments
 
-There is an existing deployment of this software here:
-
-- http://64.225.54.237:8080/servers
-- http://64.225.54.237:8080/servers/all
-- http://64.225.54.237:8080/servers/debug
-- http://64.225.54.237:8080/latest
-- udp://64.225.54.237:8080 (beacons)
+There is an existing deployment of this software at http://64.225.54.237/servers
 
 If you'd like to stand up a new deployment:
 
