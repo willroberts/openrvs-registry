@@ -56,7 +56,8 @@ func SendHealthchecks(servers map[string]Server) map[string]Server {
 func UpdateHealthStatus(s Server) Server {
 	// Send a UDP beacon and determine if it failed.
 	var failed bool
-	if _, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout); err != nil {
+	reportBytes, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout)
+	if err != nil {
 		failed = true // No need to log connection refused, timeout, etc.
 	}
 
@@ -77,6 +78,15 @@ func UpdateHealthStatus(s Server) Server {
 	// Healthcheck succeeded.
 	s.Health.PassedChecks++   // Another check in a row has passed.
 	s.Health.FailedChecks = 0 // 0 checks in a row have failed.
+
+	// Update name and game mode in case they have changed.
+	report, err := beacon.ParseServerReport(s.IP, reportBytes)
+	if err != nil {
+		log.Println("failed to parse server report when updating name and game mode:", err)
+	} else {
+		s.Name = report.ServerName
+		s.GameMode = report.CurrentMode
+	}
 
 	// Mark unhealthy servers healthy again after three successful checks.
 	if !s.Health.Healthy && s.Health.PassedChecks >= PassedCheckThreshold {
