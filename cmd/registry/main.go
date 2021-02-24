@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	beacon "github.com/ijemafe/openrvs-beacon"
-	registry "github.com/ijemafe/openrvs-registry"
+	beacon "github.com/willroberts/openrvs-beacon"
+	registry "github.com/willroberts/openrvs-registry"
 )
 
 var (

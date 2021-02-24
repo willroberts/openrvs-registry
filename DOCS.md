@@ -7,14 +7,14 @@ This repo uses [Go](https://golang.org/), a modern, cross-platform, concurrent, 
 1. Download and install the Go programming language for your OS here: https://golang.org/doc/install
 1. Create a directory to contain all Go code, such as `%USERPROFILE%\go` (recommended)
 1. Make sure the environment variable `GOPATH` is set to the above directory
-1. Try to download openrvs-registry with `go get github.com/ijemafe/openrvs-registry` on the command line. Go has tight coupling with Git, and this clones the repository under the hood
+1. Try to download openrvs-registry with `go get github.com/willroberts/openrvs-registry` on the command line. Go has tight coupling with Git, and this clones the repository under the hood
 
 ## Building the Code
 
 Assuming a Windows development environment, there is a batch file to generate builds for both 64-bit Windows and 64-bit Linux at the same time:
 
 ```bash
-> cd %GOPATH%\src\github.com\ijemafe\openrvs-registry\cmd\registry
+> cd %GOPATH%\src\github.com\willroberts\openrvs-registry\cmd\registry
 > build.bat
 ```
 
@@ -48,7 +48,7 @@ The trailing slash must be included, and on Windows there must be two (since `\`
 If you want to run locally without compiling a new build, you can:
 
 ```bash
-> cd %GOPATH%\src\github.com\ijemafe\openrvs-registry\cmd\registry
+> cd %GOPATH%\src\github.com\willroberts\openrvs-registry\cmd\registry
 > go run main.go
 ```
 
