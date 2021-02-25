@@ -2,14 +2,17 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
-	beacon "github.com/ijemafe/openrvs-beacon"
-	registry "github.com/ijemafe/openrvs-registry"
+	beacon "github.com/willroberts/openrvs-beacon"
+	registry "github.com/willroberts/openrvs-registry"
 )
 
 var (
@@ -96,6 +99,42 @@ func main() {
 	// Create an HTTP handler which returns the latest release version from Github.
 	http.HandleFunc("/latest", func(w http.ResponseWriter, r *http.Request) {
 		w.Write(registry.GetLatestReleaseVersion())
+	})
+
+	// Create an HTTP handler which accepts hints for new servers to healthcheck.
+	http.HandleFunc("/servers/add", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		defer r.Body.Close()
+
+		parts := strings.Split(string(body), ":")
+		if len(parts) != 2 {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		host := parts[0]
+		port, err := strconv.Atoi(parts[1])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		reportBytes, err := beacon.GetServerReport(host, port+1000, registry.HealthCheckTimeout)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		registerServer(host, reportBytes)
 	})
 
 	// Start listening on TCP/8080 for HTTP requests from OpenRVS clients.
