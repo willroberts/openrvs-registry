@@ -4,7 +4,7 @@ This repo uses [Go](https://golang.org/doc/install), a cross-platform, concurren
 
 ## Initial Setup
 
-1. Download and install the Go programming language for your OS here: 
+1. Download and install the Go programming language for your OS 
 1. Clone this repo
 
 ## Navigating the Code
