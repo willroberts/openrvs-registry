@@ -1,10 +1,10 @@
 # openrvs-registry Developer Documentation
 
-This repo uses [Go](https://golang.org/doc/install), a cross-platform, concurrent, compiled, garbage-collected, statically-typed programming language.
+This repo uses Go, a cross-platform, concurrent, compiled, garbage-collected, statically-typed programming language.
 
 ## Initial Setup
 
-1. Download and install the Go programming language for your OS 
+1. [Download and install the Go programming language for your OS](https://golang.org/doc/install)
 1. Clone this repo
 
 ## Navigating the Code
