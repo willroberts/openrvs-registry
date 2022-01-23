@@ -23,7 +23,7 @@ Currently, there are five files containing Go code:
 Assuming a Windows development environment, there is a batch file to generate builds for both 64-bit Windows and 64-bit Linux at the same time:
 
 ```bash
-> cd registry.git
+> cd openrvs-registry.git
 > build.bat
 ```
 
@@ -57,7 +57,7 @@ The trailing slash must be included, and on Windows there must be two (since `\`
 If you want to run locally without compiling a new build, you can:
 
 ```bash
-> cd %GOPATH%\src\github.com\willroberts\openrvs-registry\cmd\registry
+> cd openrvs-registry.git\cmd\registry
 > go run main.go
 ```
 
