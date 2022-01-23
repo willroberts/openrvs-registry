@@ -69,10 +69,9 @@ There is an existing deployment at http://openrvs.org/servers
 
 If you'd like to stand up a new deployment:
 
-1. Build the code.
-1. Spin up a Linux or Windows server.
-1. Populate `seed.csv` on your server to choose some initial game servers.
-1. Run the app on your server. Logs will be written to disk where the app is located.
+1. Build the code and copy it to your Linux or Windows server.
+1. Populate `seed.csv` to choose some initial game servers.
+1. Run the app.
 
 ## Pointing Clients at a Registry
 
