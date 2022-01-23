@@ -43,7 +43,7 @@ Run `registry.exe` to run the build locally. All log information is printed to `
 2020/05/30 23:35:27 starting udp listener
 ```
 
-You can now hit the HTTP URLs in your browser at `http://localhost:8080/<path>`,
+You can now hit the HTTP URLs in your browser (e.g. `http://localhost:8080/servers`),
 or send UDP beacons to `udp://localhost:8080` to test automatic registration.
 
 If you want to run the app from a different working directory, you can:
