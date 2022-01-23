@@ -23,7 +23,7 @@ Currently, there are five files containing Go code:
 Assuming a Windows development environment, there is a batch file to generate builds for both 64-bit Windows and 64-bit Linux at the same time:
 
 ```bash
-> cd openrvs-registry.git
+> cd openrvs-registry.git\cmd\registry
 > build.bat
 ```
 
