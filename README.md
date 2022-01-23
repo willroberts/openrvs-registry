@@ -41,29 +41,6 @@ There is a TCP listener for HTTP requests on port 8080, with the following endpo
 
 There is also a UDP listener for OpenRVS beacons on port 8080, for registration and health checking.
 
-## Deployments
-
-There is an existing deployment at http://openrvs.org/servers
-
-If you'd like to stand up a new deployment:
-
-1. Compile `openrvs-registry` with `build.bat` as described in [the developer
-docs](DOCS.md).
-1. Spin up a Linux or Windows server
-1. Populate `seed.csv` based on the copy in this repo to choose the initial set
-of servers. Put this file on the server alongside the compiled build.
-1. Run the app on the server, using some mechanism to keep the process running
-(either `systemd` in Linux or `services.msc` in Windows)
-1. Direct the output of the program into a log file. In `systemd`, for example,
-you can set the value of `StandardOutput` to `file:/full/path/to/registry.log`
-under `[Service]` in order to send all logs to that file. Logs will contain all
-information about healthchecks, status changes, saving to and loading from disk,
-and any errors which might occur.
-1. At this point, the server is running, has been seeded with the servers you
-provided, and is now listening for registration beacons from OpenRVS servers.
-1. To use the registry, edit `openrvs.ini` and change `ServerURL` to your
-server's IP (followed by `:8080`) and change `ServerListURL` to `servers`.
-
 ## Developer Documentation
 
 For developer docs, see [DOCS.md](DOCS.md).

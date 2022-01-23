@@ -7,6 +7,17 @@ This repo uses [Go](https://golang.org/doc/install), a cross-platform, concurren
 1. Download and install the Go programming language for your OS here: 
 1. Clone this repo
 
+## Navigating the Code
+
+Currently, there are five files containing Go code:
+
+1. `cmd/registry/main.go`: the primary code. starts the http and udp listeners,
+	schedules disk checkpointing, and schedules healthchecks.
+1. `csv.go`: contains code for converting CSV to Server objects and vice versa
+1. `healthcheck.go`: contains logic for hiding unhealthy servers
+1. `latest.go`: contains code for hitting the Github API
+1. `types.go`: contains definitions and utility code unlikely to change
+
 ## Building the Code
 
 Assuming a Windows development environment, there is a batch file to generate builds for both 64-bit Windows and 64-bit Linux at the same time:
@@ -52,13 +63,22 @@ If you want to run locally without compiling a new build, you can:
 
 Now you can tweak the code and repeat either set of steps above to iterate on changes.
 
-## Navigating the Code
+## Deployments
 
-Currently, there are five files containing Go code:
+There is an existing deployment at http://openrvs.org/servers
 
-1. `cmd/registry/main.go`: the primary code. starts the http and udp listeners,
-	schedules disk checkpointing, and schedules healthchecks.
-1. `csv.go`: contains code for converting CSV to Server objects and vice versa
-1. `healthcheck.go`: contains logic for hiding unhealthy servers
-1. `latest.go`: contains code for hitting the Github API
-1. `types.go`: contains definitions and utility code unlikely to change
+If you'd like to stand up a new deployment:
+
+1. Compile the registry as described in the [developer docs](DOCS.md).
+1. Spin up a Linux or Windows server.
+1. Populate `seed.csv` on your server to choose some initial game servers.
+1. Run the app on your server. Logs will be written to disk where the app is located.
+
+## Pointing Clients at a Registry
+
+Update the following values in `openrvs.ini`:
+
+```
+ServerURL openrvs.org:80 # or your IP and port
+ServerListURL servers
+```
