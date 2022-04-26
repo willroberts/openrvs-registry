@@ -31,6 +31,16 @@ to a server running this app. When the app receives a beacon on its
 UDP port, the information for that IP and port is updated. If the server is not
 yet known, it is automatically added to the list.
 
+## Adding new servers
+
+As of OpenRVS 1.5, new servers will automatically register themselves with the registry.
+
+Servers can also be manually added over HTTP:
+
+```
+$ curl -X POST https://openrvs.org/servers/add -d "host:port"
+```
+
 ## Listeners
 
 There is a TCP listener for HTTP requests on port 8080, with the following endpoints:
