@@ -11,7 +11,7 @@ import (
 	"unicode/utf8"
 )
 
-const	csvHeaderLine  = "name,ip,port,mode"
+const csvHeaderLine = "name,ip,port,mode"
 
 // ServersToCSV converts our internal data to CSV format for OpenRVS clients.
 // Also handles sorting, with special characters coming after alphabeticals.
