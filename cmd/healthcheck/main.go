@@ -25,7 +25,7 @@ func main() {
 		log.Fatal("failed to parse servers from csv:", err)
 	}
 
-	log.Println("sending healthchecks...")
+	log.Printf("sending healthchecks with %s timeout", registry.HealthCheckTimeout)
 	servers = registry.SendHealthchecks(servers)
 
 	for _, s := range servers {
