@@ -16,6 +16,9 @@ import (
 )
 
 var (
+	seedPath       string
+	checkpointPath string
+
 	servers             = make(map[string]registry.Server) // Stores all known servers.
 	lock                = sync.RWMutex{}                   // For safely accessing the server map.
 	checkpointInterval  = 5 * time.Minute                  // Save to disk this often.
@@ -29,22 +32,25 @@ var (
 	}
 )
 
+func init() {
+	flag.StringVar(&seedPath, "seed-file", "", "path to seed.csv")
+	flag.StringVar(&checkpointPath, "checkpoint-file", "", "path to checkpoint.csv")
+	flag.Parse()
+}
+
 func main() {
 	log.Println("openrvs-registry process started")
-
-	// Allow setting CSV directory explicitly. If you set this, it must include
-	// a platform-dependent trailing slash. For example, on Windows:
-	//     registry.exe -csvdir=C:\path\to\csv\files\\
-	var dir string
-	flag.StringVar(&dir, "csvdir", "", "directory containing seed.csv and checkpoint.csv")
-	flag.Parse()
 
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
 	log.Println("loading servers from file")
 	var err error
-	servers, err = registry.LoadServers(dir)
+	servers, err = registry.LoadServers(checkpointPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("unable to read checkpoint.csv; falling back to seed.csv")
+		servers, err = registry.LoadServers(seedPath)
+		if err != nil {
+			log.Fatal("unable to load servers from csv: ", err)
+		}
 	}
 
 	// Log the number of servers loaded from file.

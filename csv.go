@@ -17,10 +17,10 @@ const (
 	csvHeaderLine  = "name,ip,port,mode"
 )
 
-// ServersToCSV converts our internal data to CSV format for OpenRVS clients.
+// serversToCSV converts our internal data to CSV format for OpenRVS clients.
 // Also handles sorting, with special characters coming after alphabeticals.
 // If debug is true, includes detailed health status in the response.
-func ServersToCSV(servers map[string]Server, debug bool) []byte {
+func serversToCSV(servers map[string]Server, debug bool) []byte {
 	// Use two lists to maintain alphabetical sorting.
 	var alphaServers []string
 	var nonalphaServers []string
@@ -63,8 +63,8 @@ func ServersToCSV(servers map[string]Server, debug bool) []byte {
 	return []byte(resp)
 }
 
-// CSVToServers converts CSV (generally from local file) to a map of servers.
-func CSVToServers(csv []byte) (map[string]Server, error) {
+// csvToServers converts CSV (generally from local file) to a map of servers.
+func csvToServers(csv []byte) (map[string]Server, error) {
 	servers := make(map[string]Server)
 	trimmed := strings.TrimSuffix(string(csv), "\n")
 
@@ -104,25 +104,16 @@ func CSVToServers(csv []byte) (map[string]Server, error) {
 // Every time the app starts up, it checks the file 'checkpoint.csv' to see if
 // it can pick up where it last left off. If this file does not exist, fall back
 // to 'seed.csv', which contains the initial seed list for the app.
-func LoadServers(dir string) (map[string]Server, error) {
+func LoadServers(csvPath string) (map[string]Server, error) {
 	// First, try to read checkpoint file.
-	p := getPath(dir, checkpointFile)
-	log.Println("reading checkpoint file at", p)
-	bytes, err := ioutil.ReadFile(p)
+	log.Println("reading checkpoint file at", csvPath)
+	bytes, err := ioutil.ReadFile(csvPath)
 	if err != nil {
-		// Fall back to seed file.
-		log.Println("unable to read checkpoint.csv, falling back to seed.csv")
-		p = getPath(dir, seedFile)
-		log.Println("reading seed file at", p)
-		bytes, err = ioutil.ReadFile(p)
-		if err != nil {
-			// No file was found, return the error.
-			return nil, err
-		}
+		return nil, err
 	}
 
 	// Parse and return the CSV file.
-	parsed, err := CSVToServers(bytes)
+	parsed, err := csvToServers(bytes)
 	if err != nil {
 		return nil, err
 	}
@@ -130,19 +121,8 @@ func LoadServers(dir string) (map[string]Server, error) {
 }
 
 // SaveServers writes the latest servers to disk.
-func SaveServers(dir string, servers map[string]Server) error {
+func SaveServers(csvPath string, servers map[string]Server) error {
 	// Write current servers to checkpoint file.
-	p := getPath(dir, checkpointFile)
-	log.Println("saving checkpoint file to", p)
-	return ioutil.WriteFile(p, ServersToCSV(servers, false), 0644)
-}
-
-// getPath formats a local file path to a CSV config file. If dir is provided,
-// the path will be prepended. If dir is excluded, the path will be treated as
-// if it's in the current working directory.
-func getPath(dir string, file string) string {
-	if dir != "" {
-		return fmt.Sprintf("%s%s", dir, file)
-	}
-	return file
+	log.Println("saving checkpoint file to", csvPath)
+	return ioutil.WriteFile(csvPath, serversToCSV(servers, false), 0644)
 }
