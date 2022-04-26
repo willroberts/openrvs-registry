@@ -65,7 +65,7 @@ func main() {
 		for {
 			time.Sleep(checkpointInterval)
 			lock.Lock()
-			registry.SaveServers(dir, servers)
+			registry.SaveServers(checkpointPath, servers)
 			lock.Unlock()
 		}
 	}()

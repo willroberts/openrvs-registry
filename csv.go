@@ -11,16 +11,12 @@ import (
 	"unicode/utf8"
 )
 
-const (
-	seedFile       = "seed.csv"
-	checkpointFile = "checkpoint.csv"
-	csvHeaderLine  = "name,ip,port,mode"
-)
+const	csvHeaderLine  = "name,ip,port,mode"
 
-// serversToCSV converts our internal data to CSV format for OpenRVS clients.
+// ServersToCSV converts our internal data to CSV format for OpenRVS clients.
 // Also handles sorting, with special characters coming after alphabeticals.
 // If debug is true, includes detailed health status in the response.
-func serversToCSV(servers map[string]Server, debug bool) []byte {
+func ServersToCSV(servers map[string]Server, debug bool) []byte {
 	// Use two lists to maintain alphabetical sorting.
 	var alphaServers []string
 	var nonalphaServers []string
@@ -124,5 +120,5 @@ func LoadServers(csvPath string) (map[string]Server, error) {
 func SaveServers(csvPath string, servers map[string]Server) error {
 	// Write current servers to checkpoint file.
 	log.Println("saving checkpoint file to", csvPath)
-	return ioutil.WriteFile(csvPath, serversToCSV(servers, false), 0644)
+	return ioutil.WriteFile(csvPath, ServersToCSV(servers, false), 0644)
 }
