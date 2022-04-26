@@ -11,16 +11,15 @@ import (
 )
 
 const (
-	// HealthCheckTimeout is the amount of time to wait before closing the UDP
-	// socket.
+	// HealthCheckTimeout is the amount of time to wait before closing the UDP socket.
 	HealthCheckTimeout = 5 * time.Second // Values below 3 lose data.
-
-	// TODO: Make these configurable:
 
 	// FailedCheckThreshold is used to hide servers after failing healthchecks.
 	FailedCheckThreshold = 60 // 30 minutes
+
 	// PassedCheckThreshold is used to show servers again after being marked unhealthy.
 	PassedCheckThreshold = 1
+
 	// MaxFailedChecks is used to prune servers from the list entirely.
 	MaxFailedChecks = 5760 // 2 days
 )
