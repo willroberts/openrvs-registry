@@ -59,8 +59,7 @@ func (c *csvSerializer) Serialize(m ServerMap) []byte {
 	// Previous implementation sorted non-alphanumeric server names last:
 	// var r rune
 	// utf8.EncodeRune([]byte(line[0]), r))
-	// if unicode.IsLetter(r) {
-	// alphaServers = append(...) } else { nonAlpha = append(...) }
+	// if unicode.IsLetter(r) { ... }
 	sort.Strings(serverLines)
 	lines = append(lines, serverLines...)
 
