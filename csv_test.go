@@ -82,3 +82,21 @@ func TestCSVSerializer_Deserialize(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestCSVSerializer_DeserializeInvalid(t *testing.T) {
+	csv := NewCSVSerializer(false)
+
+	// Test missing fields
+	_, err := csv.Deserialize([]byte("MyServer,127.0.0.1,6777"))
+	if err == nil {
+		t.Log("failed to detect missing fields")
+		t.FailNow()
+	}
+
+	// Test invalid port.
+	_, err = csv.Deserialize([]byte("MyServer,127.0.0.1,port,MyGameMode"))
+	if err == nil {
+		t.Log("failed to detect invalid port")
+		t.FailNow()
+	}
+}

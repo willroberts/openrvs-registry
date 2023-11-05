@@ -1,8 +1,8 @@
 package registry
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -79,16 +79,14 @@ func (c *csvSerializer) Deserialize(b []byte) (ServerMap, error) {
 		// Don't attempt to deserialize malformed lines.
 		fields := strings.Split(line, ",")
 		if len(fields) != 4 {
-			log.Println("warning: invalid line skipped:", line)
-			continue
+			return nil, errors.New("invalid line in csv input")
 		}
 
 		// Convert port to integer.
 		ip := fields[1]
 		port, err := strconv.Atoi(fields[2])
 		if err != nil {
-			log.Println("error: received non-numeric port")
-			return nil, err
+			return nil, errors.New("invalid (non-numeric) port received")
 		}
 
 		// Save a new Server object in the ServerMap.

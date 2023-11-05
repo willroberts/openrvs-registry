@@ -5,11 +5,11 @@ lint:
 
 .PHONY: test
 test:
-	go test ./...
+	go test -v ./...
 
 .PHONY: test_integ
 test_integ:
-	go test -tags=integration ./...
+	go test -v -tags=integration ./...
 
 .PHONY: coverage
 coverage:
