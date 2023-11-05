@@ -36,15 +36,33 @@ func TestCSVSerializer_Serialize(t *testing.T) {
 		t.FailNow()
 	}
 
-	if lines[1] != "MyServer,127.0.0.1,6777,MyGameMode" {
+	expected := "MyServer,127.0.0.1,6777,MyGameMode"
+	if lines[1] != expected {
 		t.Log("unexpected server line")
-		t.Logf("expected %s, got %s", "MyServer,127.0.0.1,6777,MyGameMode", lines[1])
+		t.Logf("expected %s, got %s", expected, lines[1])
 		t.FailNow()
 	}
 }
 
 func TestCSVSerializer_SerializeDebug(t *testing.T) {
-	//csv := NewCSVSerializer(true)
+	csv := NewCSVSerializer(true)
+	b := csv.Serialize(ServerMap{
+		NewHostport("127.0.0.1", 6777): Server{
+			Name:     "MyServer",
+			IP:       "127.0.0.1",
+			Port:     6777,
+			GameMode: "MyGameMode",
+		},
+	})
+
+	s := strings.Split(string(b), "\n")[1]
+	expected := "MyServer,127.0.0.1,6777,MyGameMode,healthy=false,expired=false,passed=0,failed=0"
+	if s != expected {
+		t.Log("unexpected server line")
+		t.Logf("expected %s, got %s", expected, s)
+		t.FailNow()
+	}
+
 }
 
 func TestCSVSerializer_Deserialize(t *testing.T) {
