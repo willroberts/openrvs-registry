@@ -1,6 +1,7 @@
+package registry
+
 // This file contains code which should live in the repo root and not this cmd.
 // It's a bit of a dumping ground right now until I refactor.
-package registry
 
 import (
 	"log"
