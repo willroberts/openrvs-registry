@@ -2,6 +2,17 @@ package registry
 
 import "fmt"
 
+// Hostport represents an IP+Port combo to be used as a unique server ID.
+type Hostport string
+
+// NewHostport combines an IP and Port into a unique server ID.
+func NewHostport(ip string, port int) Hostport {
+	return Hostport(fmt.Sprintf("%s:%d", ip, port))
+}
+
+// ServerMap maps unique Hostport IDs to server metadata.
+type ServerMap map[Hostport]Server
+
 // Server contains all relevant fields for an individual game server.
 type Server struct {
 	Name     string
@@ -46,9 +57,4 @@ var GameTypes = map[string]string{
 
 	// TODO: Add Iron Wrath modes
 	// Free Backup, Gas Alert, Intruder, Limited Seats, Virus Upload (all adv)
-}
-
-// HostportToKey generates a unique map key for a server using its IP and port.
-func HostportToKey(ip string, port int) string {
-	return fmt.Sprintf("%s:%d", ip, port)
 }

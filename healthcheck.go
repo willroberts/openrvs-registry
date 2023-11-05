@@ -27,17 +27,17 @@ const (
 
 // SendHealthchecks queries each known server and updates its health status in
 // memory.
-func SendHealthchecks(servers map[string]Server) map[string]Server {
+func SendHealthchecks(servers ServerMap) ServerMap {
 	var (
-		checked = make(map[string]Server, 0) // Output map.
-		wg      sync.WaitGroup               // For synchronizing the UDP beacons.
-		lock    = sync.RWMutex{}             // For safely accessing checked map.
+		checked = make(ServerMap, 0) // Output map.
+		wg      sync.WaitGroup       // For synchronizing the UDP beacons.
+		lock    = sync.RWMutex{}     // For safely accessing checked map.
 	)
 
 	for k, s := range servers {
 		wg.Add(1) // Add an item to wait for.
 		// Kick off this work in a new thread.
-		go func(k string, s Server) {
+		go func(k Hostport, s Server) {
 			updated := UpdateHealthStatus(s) // Retrieve updated health status.
 			lock.Lock()                      // Prevent other access to checked map (will block).
 			checked[k] = updated             // Store the updated server info, healthy or not.
@@ -99,8 +99,8 @@ func UpdateHealthStatus(s Server) Server {
 
 // FilterHealthyServers iterates through a map of Servers, and returns a subset
 // maps of Servers which only contains the servers marked as being healthy.
-func FilterHealthyServers(servers map[string]Server) map[string]Server {
-	filtered := make(map[string]Server)
+func FilterHealthyServers(servers ServerMap) ServerMap {
+	filtered := make(ServerMap)
 	for k, s := range servers {
 		if s.Health.Healthy {
 			filtered[k] = s // Copy to output map.
