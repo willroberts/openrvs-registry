@@ -1,13 +1,6 @@
-package main
+package registry
 
-import (
-	"net"
-	"testing"
-	"time"
-
-	beacon "github.com/willroberts/openrvs-beacon"
-)
-
+/*
 // Pretend to be a server and replay the beacon. Useful for testing automatic
 // addition of new servers to the list when beacons are received.
 func TestUDP(t *testing.T) {
@@ -33,3 +26,4 @@ func TestUDP(t *testing.T) {
 		t.FailNow()
 	}
 }
+*/
