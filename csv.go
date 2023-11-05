@@ -2,8 +2,8 @@ package registry
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -103,7 +103,7 @@ func csvToServers(csv []byte) (map[string]Server, error) {
 func LoadServers(csvPath string) (map[string]Server, error) {
 	// First, try to read checkpoint file.
 	log.Println("reading checkpoint file at", csvPath)
-	bytes, err := ioutil.ReadFile(csvPath)
+	bytes, err := os.ReadFile(csvPath)
 	if err != nil {
 		return nil, err
 	}
@@ -120,5 +120,5 @@ func LoadServers(csvPath string) (map[string]Server, error) {
 func SaveServers(csvPath string, servers map[string]Server) error {
 	// Write current servers to checkpoint file.
 	log.Println("saving checkpoint file to", csvPath)
-	return ioutil.WriteFile(csvPath, ServersToCSV(servers, false), 0644)
+	return os.WriteFile(csvPath, ServersToCSV(servers, false), 0644)
 }

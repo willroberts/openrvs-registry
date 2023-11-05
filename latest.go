@@ -2,7 +2,7 @@ package registry
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -30,7 +30,7 @@ func GetLatestReleaseVersion() []byte {
 	defer resp.Body.Close()
 
 	// Read the response body as bytes.
-	bytes, err := ioutil.ReadAll(resp.Body)
+	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("error reading response body:", err)
 		return defaultVersion
