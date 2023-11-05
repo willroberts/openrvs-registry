@@ -8,11 +8,14 @@ import (
 	"strings"
 )
 
+// CSVSerializer provides an interface for serializing and deserializing lists
+// of OpenRVS servers as CSV bytes.
 type CSVSerializer interface {
 	Serialize(ServerMap) []byte
 	Deserialize([]byte) (ServerMap, error)
 }
 
+// csvSerializer implements the CSVSerializer interface.
 type csvSerializer struct {
 	headerLine string
 	debugMode  bool
