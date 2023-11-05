@@ -7,7 +7,7 @@ import (
 )
 
 func TestCSVSerializer_New(t *testing.T) {
-	_ = NewCSVSerializer(false)
+	_ = NewCSVSerializer()
 }
 
 func TestCSVSerializer_Serialize(t *testing.T) {
@@ -46,7 +46,8 @@ func TestCSVSerializer_Serialize(t *testing.T) {
 }
 
 func TestCSVSerializer_SerializeDebug(t *testing.T) {
-	csv := NewCSVSerializer(true)
+	csv := NewCSVSerializer()
+	csv.EnableDebug(true)
 	b := csv.Serialize(ServerMap{
 		NewHostport("127.0.0.1", 6777): Server{
 			Name:     "MyServer",
@@ -84,7 +85,7 @@ func TestCSVSerializer_Deserialize(t *testing.T) {
 }
 
 func TestCSVSerializer_DeserializeInvalid(t *testing.T) {
-	csv := NewCSVSerializer(false)
+	csv := NewCSVSerializer()
 
 	// Test missing fields
 	_, err := csv.Deserialize([]byte("MyServer,127.0.0.1,6777"))

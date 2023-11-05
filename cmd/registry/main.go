@@ -25,8 +25,7 @@ var (
 	checkpointInterval  = 5 * time.Minute          // Save to disk this often.
 	healthcheckInterval = 30 * time.Second         // Send healthchecks this often.
 
-	csv      = registry.NewCSVSerializer(false)
-	debugCSV = registry.NewCSVSerializer(true)
+	csv = registry.NewCSVSerializer()
 
 	localNetworks = []string{
 		"127.0.0.0/8",
@@ -103,7 +102,9 @@ func main() {
 
 	// Create an HTTP handler which returns all servers with detailed health status.
 	http.HandleFunc("/servers/debug", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(debugCSV.Serialize(servers))
+		csv.EnableDebug(true)
+		w.Write(csv.Serialize(servers))
+		csv.EnableDebug(false)
 	})
 
 	// Create an HTTP handler which returns the latest release version from Github.

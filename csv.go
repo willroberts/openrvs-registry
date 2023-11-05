@@ -13,6 +13,7 @@ import (
 type CSVSerializer interface {
 	Serialize(ServerMap) []byte
 	Deserialize([]byte) (ServerMap, error)
+	EnableDebug(bool)
 }
 
 // csvSerializer implements the CSVSerializer interface.
@@ -24,11 +25,15 @@ type csvSerializer struct {
 // NewCSVSerializer initializes and returns a CSVSerializer. The debugMode
 // paraemter control whether or not health check status is included in
 // serialized output.
-func NewCSVSerializer(debugMode bool) CSVSerializer {
+func NewCSVSerializer() CSVSerializer {
 	return &csvSerializer{
 		headerLine: "name,ip,port,mode",
-		debugMode:  debugMode,
+		debugMode:  false,
 	}
+}
+
+func (c *csvSerializer) EnableDebug(value bool) {
+	c.debugMode = value
 }
 
 // Serialize writes the given ServerMap as sorted CSV output.
