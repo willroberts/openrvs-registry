@@ -35,17 +35,17 @@ func SendHealthchecks(servers ServerMap) ServerMap {
 	)
 
 	for k, s := range servers {
-		wg.Add(1) // Add an item to wait for.
 		// Kick off this work in a new thread.
+		wg.Add(1)
 		go func(k Hostport, s Server) {
-			updated := UpdateHealthStatus(s) // Retrieve updated health status.
-			lock.Lock()                      // Prevent other access to checked map (will block).
-			checked[k] = updated             // Store the updated server info, healthy or not.
-			lock.Unlock()                    // Allow other access to checked map.
-			wg.Done()                        // Remove an item to wait for.
+			updated := UpdateHealthStatus(s)
+			lock.Lock()
+			checked[k] = updated
+			lock.Unlock()
+			wg.Done()
 		}(k, s)
 	}
-	wg.Wait() // Wait until there are no items left to wait for.
+	wg.Wait()
 
 	log.Println("healthy servers:", len(FilterHealthyServers(checked)), "out of", len(servers))
 	return checked
