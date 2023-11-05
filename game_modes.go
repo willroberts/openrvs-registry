@@ -1,39 +1,8 @@
 package registry
 
-import "fmt"
-
-// Hostport represents an IP+Port combo to be used as a unique server ID.
-type Hostport string
-
-// NewHostport combines an IP and Port into a unique server ID.
-func NewHostport(ip string, port int) Hostport {
-	return Hostport(fmt.Sprintf("%s:%d", ip, port))
-}
-
-// ServerMap maps unique Hostport IDs to server metadata.
-type ServerMap map[Hostport]Server
-
-// Server contains all relevant fields for an individual game server.
-type Server struct {
-	Name     string
-	IP       string
-	Port     int
-	GameMode string
-
-	Health HealthStatus
-}
-
-// HealthStatus contains information needed to track whether a server is healthy.
-type HealthStatus struct {
-	Healthy      bool
-	Expired      bool
-	PassedChecks int
-	FailedChecks int
-}
-
-// GameTypes contains a map of all active game types, mapping them to either
+// GameModes contains a map of all active game types, mapping them to either
 // Adversarial or Cooperative mode identifiers 'adv' and 'coop'.
-var GameTypes = map[string]string{
+var GameModes = map[string]string{
 	// Raven Shield modes
 	"RGM_BombAdvMode":           "adv",  // Bomb
 	"RGM_DeathmatchMode":        "adv",  // Survival

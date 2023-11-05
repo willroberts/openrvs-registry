@@ -208,7 +208,7 @@ func registerServer(ip string, msg []byte) {
 		Name:     report.ServerName,
 		IP:       report.IPAddress,
 		Port:     report.Port,
-		GameMode: registry.GameTypes[report.CurrentMode],
+		GameMode: registry.GameModes[report.CurrentMode],
 	}
 	lock.Unlock()
 
