@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -66,5 +67,18 @@ func TestCSVSerializer_SerializeDebug(t *testing.T) {
 }
 
 func TestCSVSerializer_Deserialize(t *testing.T) {
-	//csv := NewCSVSerializer(false)
+	csv := &csvSerializer{
+		headerLine: "name,ip,port,mode",
+		debugMode:  false,
+	}
+	s := fmt.Sprintf(
+		"%s\n%s",
+		"name,ip,port,mode",
+		"MyServer,127.0.0.1,6777,MyGameMode",
+	)
+	_, err := csv.Deserialize([]byte(s))
+	if err != nil {
+		t.Log("failed to deserialize csv:", err)
+		t.FailNow()
+	}
 }
