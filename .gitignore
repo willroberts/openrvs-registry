@@ -4,3 +4,6 @@ cmd/registry/registry
 
 # Temporary data
 cmd/registry/checkpoint.csv
+
+# Go
+cover.out
