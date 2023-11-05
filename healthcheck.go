@@ -1,8 +1,5 @@
 package registry
 
-// This file contains code which should live in the repo root and not this cmd.
-// It's a bit of a dumping ground right now until I refactor.
-
 import (
 	"log"
 	"sync"
@@ -27,6 +24,11 @@ const (
 
 // SendHealthchecks queries each known server and updates its health status in
 // memory.
+// TODO: Automatically prune servers which have failed healthchecks for a week.
+// This would be a bit easier if we stored the "last passed check" timestamp in
+// the CSV file, since restarting the service currently restarts the number of
+// consecutive failed checks (and we need over 20,000 failed checks to
+// constitute a week).
 func SendHealthchecks(servers ServerMap) ServerMap {
 	var (
 		checked = make(ServerMap, 0) // Output map.
