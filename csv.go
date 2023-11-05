@@ -23,7 +23,7 @@ type csvSerializer struct {
 }
 
 // NewCSVSerializer initializes and returns a CSVSerializer. The debugMode
-// paraemter control whether or not health check status is included in
+// parameter control whether or not health check status is included in
 // serialized output.
 func NewCSVSerializer() CSVSerializer {
 	return &csvSerializer{
