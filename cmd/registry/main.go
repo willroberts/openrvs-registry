@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -19,10 +20,12 @@ var (
 	seedPath       string
 	checkpointPath string
 
-	servers             = make(map[string]registry.Server) // Stores all known servers.
-	lock                = sync.RWMutex{}                   // For safely accessing the server map.
-	checkpointInterval  = 5 * time.Minute                  // Save to disk this often.
-	healthcheckInterval = 30 * time.Second                 // Send healthchecks this often.
+	servers             = make(registry.ServerMap) // Stores all known servers.
+	lock                = sync.RWMutex{}           // For safely accessing the server map.
+	checkpointInterval  = 5 * time.Minute          // Save to disk this often.
+	healthcheckInterval = 30 * time.Second         // Send healthchecks this often.
+
+	csv = registry.NewCSVSerializer()
 
 	localNetworks = []string{
 		"127.0.0.0/8",
@@ -44,10 +47,10 @@ func main() {
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
 	log.Println("loading servers from file")
 	var err error
-	servers, err = registry.LoadServers(checkpointPath)
+	servers, err = LoadServers(checkpointPath)
 	if err != nil {
 		log.Println("unable to read checkpoint.csv; falling back to seed.csv")
-		servers, err = registry.LoadServers(seedPath)
+		servers, err = LoadServers(seedPath)
 		if err != nil {
 			log.Fatal("unable to load servers from csv: ", err)
 		}
@@ -65,7 +68,7 @@ func main() {
 		for {
 			time.Sleep(checkpointInterval)
 			lock.Lock()
-			registry.SaveServers(checkpointPath, servers)
+			SaveServers(checkpointPath, servers)
 			lock.Unlock()
 		}
 	}()
@@ -89,17 +92,19 @@ func main() {
 
 	// Create an HTTP handler which returns healthy servers.
 	http.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(registry.ServersToCSV(registry.FilterHealthyServers(servers), false))
+		w.Write(csv.Serialize(registry.FilterHealthyServers(servers)))
 	})
 
 	// Create an HTTP handler which returns all servers.
 	http.HandleFunc("/servers/all", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(registry.ServersToCSV(servers, false))
+		w.Write(csv.Serialize(servers))
 	})
 
 	// Create an HTTP handler which returns all servers with detailed health status.
 	http.HandleFunc("/servers/debug", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(registry.ServersToCSV(servers, true))
+		csv.EnableDebug(true)
+		w.Write(csv.Serialize(servers))
+		csv.EnableDebug(false)
 	})
 
 	// Create an HTTP handler which returns the latest release version from Github.
@@ -114,7 +119,7 @@ func main() {
 			return
 		}
 
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -199,11 +204,11 @@ func registerServer(ip string, msg []byte) {
 
 	// Creates and saves a Server using the beacon data.
 	lock.Lock()
-	servers[registry.HostportToKey(report.IPAddress, report.Port)] = registry.Server{
+	servers[registry.NewHostport(report.IPAddress, report.Port)] = registry.Server{
 		Name:     report.ServerName,
 		IP:       report.IPAddress,
 		Port:     report.Port,
-		GameMode: registry.GameTypes[report.CurrentMode],
+		GameMode: registry.GameModes[report.CurrentMode],
 	}
 	lock.Unlock()
 
@@ -216,28 +221,29 @@ func logServerCount() {
 	log.Printf("there are now %d registered servers (confirm over http)", len(servers))
 }
 
-// Pretend to be a server and replay the beacon. Useful for testing automatic
-// addition of new servers to the list when beacons are received.
-func testUDP() {
-	time.Sleep(5 * time.Second)
-	log.Printf("sending test udp beacon")
-
-	// Get a real report from a test server.
-	bytes, err := beacon.GetServerReport("64.225.54.237", 7777, 3*time.Second) //rs3tdm
+// LoadServers reads a CSV file from disk.
+// Every time the app starts up, it checks the file 'checkpoint.csv' to see if
+// it can pick up where it last left off. If this file does not exist, fall back
+// to 'seed.csv', which contains the initial seed list for the app.
+func LoadServers(csvPath string) (registry.ServerMap, error) {
+	// First, try to read checkpoint file.
+	log.Println("reading checkpoint file at", csvPath)
+	bytes, err := os.ReadFile(csvPath)
 	if err != nil {
-		log.Println("testudp->get error:", err)
-		return
-	}
-	// Connect to our own app.
-	conn, err := net.DialUDP("udp4", nil, &net.UDPAddr{IP: net.ParseIP("127.0.0.1"), Port: 8080})
-	if err != nil {
-		log.Println("testudp->dial error:", err)
-		return
+		return nil, err
 	}
 
-	// Replay the report, making it appear to come from the IP 127.0.0.1
-	if _, err = conn.Write(bytes); err != nil {
-		log.Println("testudp->write error:", err)
-		return
+	// Parse and return the CSV file.
+	parsed, err := csv.Deserialize(bytes)
+	if err != nil {
+		return nil, err
 	}
+	return parsed, nil
+}
+
+// SaveServers writes the latest servers to disk.
+func SaveServers(csvPath string, servers registry.ServerMap) error {
+	// Write current servers to checkpoint file.
+	log.Println("saving checkpoint file to", csvPath)
+	return os.WriteFile(csvPath, csv.Serialize(servers), 0644)
 }
