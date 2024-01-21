@@ -24,12 +24,15 @@ func main() {
 	log.Println("openrvs-registry process started")
 
 	config := registry.RegistryConfig{
-		SeedPath:            seedPath,
-		CheckpointPath:      checkpointPath,
-		CheckpointInterval:  5 * time.Minute,
-		HealthcheckInterval: 30 * time.Second,
-		HealthcheckTimeout:  5 * time.Second,
-		ListenAddr:          "127.0.0.1:8080",
+		SeedPath:                      seedPath,
+		CheckpointPath:                checkpointPath,
+		CheckpointInterval:            5 * time.Minute,
+		HealthcheckInterval:           30 * time.Second,
+		HealthcheckTimeout:            5 * time.Second,
+		HealthcheckHealthyThreshold:   60, // 30 minutes,
+		HealthcheckUnhealthyThreshold: 1,
+		HealthcheckHiddenThreshold:    5760, // 2 days.
+		ListenAddr:                    "127.0.0.1:8080",
 	}
 
 	reg := registry.NewRegistry(config)
@@ -81,7 +84,7 @@ func main() {
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
 		for {
-			reg.UpdateServerHealth(
+			reg.SendHealthchecks(
 				// onHealthy
 				func(s registry.GameServer) {
 					log.Println("server is now healthy:", s.IP, s.Port)
