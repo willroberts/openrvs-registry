@@ -1,4 +1,4 @@
-# openrvs-registry Developer Documentation
+# OpenRVS Registry Developer Docs
 
 This repo uses Go, a cross-platform, concurrent, compiled, garbage-collected, statically-typed programming language.
 
@@ -7,31 +7,24 @@ This repo uses Go, a cross-platform, concurrent, compiled, garbage-collected, st
 1. [Download and install the Go programming language for your OS](https://golang.org/doc/install)
 1. Clone this repo
 
-## Navigating the Code
-
-Currently, there are five files containing Go code:
-
-1. `cmd/registry/main.go`: the primary code. starts the http and udp listeners,
-	schedules disk checkpointing, and schedules healthchecks.
-1. `csv.go`: contains code for converting CSV to Server objects and vice versa
-1. `healthcheck.go`: contains logic for hiding unhealthy servers
-1. `latest.go`: contains code for hitting the Github API
-1. `types.go`: contains definitions and utility code unlikely to change
-
 ## Building the Code
 
-Assuming a Windows development environment, there is a batch file to generate builds for both 64-bit Windows and 64-bit Linux at the same time:
-
+**On Mac or Linux:**
 ```bash
-> cd openrvs-registry.git\cmd\registry
-> build.bat
+# Output will be in bin/registry.
+make build
 ```
 
-The Windows build is `registry.exe`, and the Linux build is simply `registry`.
+**On Windows:**
+```bat
+cd openrvs-registry.git\cmd\registry
+REM Output will be in cmd/registry/registry.exe.
+build.bat
+```
 
 ## Running the Code
 
-Run `registry.exe` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window:
+Run `registry[.exe]` to run the build locally. All log information is printed to `stdout` and displayed in the terminal window:
 
 ```bash
 > registry.exe
@@ -46,22 +39,18 @@ Run `registry.exe` to run the build locally. All log information is printed to `
 You can now hit the HTTP URLs in your browser (e.g. `http://localhost:8080/servers`),
 or send UDP beacons to `udp://localhost:8080` to test automatic registration.
 
-If you want to run the app from a different working directory, you can:
-
-```bash
-> registry.exe -csvdir=C:\path\to\csv\files\\
+If you want to run the app from a different working directory, you can use:
+```bat
+registry.exe -csvdir=C:\path\to\csv\files\\
 ```
 
 The trailing slash must be included, and on Windows there must be two (since `\` is typically an escape character). On Linux, use forward slashes instead.
 
-If you want to run locally without compiling a new build, you can:
-
-```bash
-> cd openrvs-registry.git\cmd\registry
-> go run main.go
+If you want to run locally without compiling a new build, you can use:
+```bat
+cd openrvs-registry.git\cmd\registry
+go run main.go
 ```
-
-Now you can tweak the code and repeat either set of steps above to iterate on changes.
 
 ## Deployments
 
@@ -73,10 +62,9 @@ If you'd like to stand up a new deployment:
 1. Populate `seed.csv` to choose some initial game servers.
 1. Run the app.
 
-## Pointing Clients at a Registry
+## Pointing OpenRVS Clients at a Registry server
 
 Update the following values in `openrvs.ini`:
-
 ```
 ServerURL openrvs.org:80 # or your IP and port
 ServerListURL servers

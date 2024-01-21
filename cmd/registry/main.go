@@ -14,26 +14,15 @@ import (
 
 	beacon "github.com/willroberts/openrvs-beacon"
 	registry "github.com/willroberts/openrvs-registry"
-	"github.com/willroberts/openrvs-registry/v2/udp"
+	v2 "github.com/willroberts/openrvs-registry/v2"
 )
 
 var (
 	seedPath       string
 	checkpointPath string
-
-	servers             = make(registry.ServerMap) // Stores all known servers.
-	lock                = sync.RWMutex{}           // For safely accessing the server map.
-	checkpointInterval  = 5 * time.Minute          // Save to disk this often.
-	healthcheckInterval = 30 * time.Second         // Send healthchecks this often.
-
-	csv = registry.NewCSVSerializer()
-
-	localNetworks = []string{
-		"127.0.0.0/8",
-		"10.0.0.0/8",
-		"172.16.0.0/12",
-		"192.168.0.0/16",
-	}
+	serverMap      = make(registry.ServerMap) // Stores all known servers.
+	serverMapLock  = sync.RWMutex{}           // For safely accessing the server map.
+	csv            = registry.NewCSVSerializer()
 )
 
 func init() {
@@ -45,16 +34,23 @@ func init() {
 func main() {
 	log.Println("openrvs-registry process started")
 
+	config := v2.RegistryConfig{
+		SeedPath:            seedPath,
+		CheckpointPath:      checkpointPath,
+		CheckpointInterval:  5 * time.Minute,
+		HealthcheckInterval: 30 * time.Second,
+	}
+
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
 	log.Println("loading servers from file")
 	var err error
-	servers, err = LoadServers(checkpointPath)
+	serverMap, err = LoadServers(config.CheckpointPath)
 	if err != nil {
 		log.Println("unable to read checkpoint.csv; falling back to seed.csv")
-		servers, err = LoadServers(seedPath)
+		serverMap, err = LoadServers(config.SeedPath)
 		if err != nil {
 			log.Println("Warning: Unable to load servers from csv: ", err)
-			servers = make(registry.ServerMap)
+			serverMap = make(registry.ServerMap)
 		}
 	}
 
@@ -68,10 +64,13 @@ func main() {
 	// with lock.Lock() below) is needed.
 	go func() {
 		for {
-			time.Sleep(checkpointInterval)
-			lock.Lock()
-			SaveServers(checkpointPath, servers)
-			lock.Unlock()
+			time.Sleep(config.CheckpointInterval)
+			serverMapLock.Lock()
+			log.Println("Saving checkpoint file to ", config.CheckpointPath)
+			if err := os.WriteFile(config.CheckpointPath, csv.Serialize(serverMap), 0644); err != nil {
+				log.Println("Failed to write checkpoint file:", err)
+			}
+			serverMapLock.Unlock()
 		}
 	}()
 
@@ -82,10 +81,10 @@ func main() {
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
 		for {
-			lock.Lock()
-			servers = registry.SendHealthchecks(servers)
-			lock.Unlock()
-			time.Sleep(healthcheckInterval)
+			serverMapLock.Lock()
+			serverMap = registry.SendHealthchecks(serverMap)
+			serverMapLock.Unlock()
+			time.Sleep(config.HealthcheckInterval)
 		}
 	}()
 
@@ -95,18 +94,18 @@ func main() {
 
 	// Create an HTTP handler which returns healthy servers.
 	http.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(csv.Serialize(registry.FilterHealthyServers(servers)))
+		w.Write(csv.Serialize(registry.FilterHealthyServers(serverMap)))
 	})
 
 	// Create an HTTP handler which returns all servers.
 	http.HandleFunc("/servers/all", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(csv.Serialize(servers))
+		w.Write(csv.Serialize(serverMap))
 	})
 
 	// Create an HTTP handler which returns all servers with detailed health status.
 	http.HandleFunc("/servers/debug", func(w http.ResponseWriter, r *http.Request) {
 		csv.EnableDebug(true)
-		w.Write(csv.Serialize(servers))
+		w.Write(csv.Serialize(serverMap))
 		csv.EnableDebug(false)
 	})
 
@@ -160,12 +159,9 @@ func main() {
 // update the serverlist.
 func registerServer(ip string, msg []byte) {
 	// Reject traffic from LAN servers.
-	for _, n := range localNetworks {
-		_, sub, _ := net.ParseCIDR(n)
-		if sub.Contains(net.ParseIP(ip)) {
-			log.Println("skipping server with local ip:", ip)
-			return
-		}
+	if net.ParseIP(ip).IsPrivate() {
+		log.Println("skipping server with private ip:", ip)
+		return
 	}
 
 	// Parses the UDP beacon from the OpenRVS server.
@@ -180,14 +176,14 @@ func registerServer(ip string, msg []byte) {
 	}
 
 	// Creates and saves a Server using the beacon data.
-	lock.Lock()
-	servers[registry.NewHostport(report.IPAddress, report.Port)] = registry.Server{
+	serverMapLock.Lock()
+	serverMap[registry.NewHostport(report.IPAddress, report.Port)] = registry.Server{
 		Name:     report.ServerName,
 		IP:       report.IPAddress,
 		Port:     report.Port,
 		GameMode: registry.GameModes[report.CurrentMode],
 	}
-	lock.Unlock()
+	serverMapLock.Unlock()
 
 	// Logs the new server count.
 	logServerCount()
@@ -195,7 +191,7 @@ func registerServer(ip string, msg []byte) {
 
 // Write the server count to the console.
 func logServerCount() {
-	log.Printf("there are now %d registered servers", len(servers))
+	log.Printf("there are now %d registered servers", len(serverMap))
 }
 
 // LoadServers reads a CSV file from disk.
@@ -218,13 +214,6 @@ func LoadServers(csvPath string) (registry.ServerMap, error) {
 	return parsed, nil
 }
 
-// SaveServers writes the latest servers to disk.
-func SaveServers(csvPath string, servers registry.ServerMap) error {
-	// Write current servers to checkpoint file.
-	log.Println("saving checkpoint file to", csvPath)
-	return os.WriteFile(csvPath, csv.Serialize(servers), 0644)
-}
-
 func serveUDP() {
 	udpHandler := func(addr *net.UDPAddr, data []byte, err error) {
 		log.Println("Received UDP from", addr.IP.String())
@@ -235,5 +224,5 @@ func serveUDP() {
 		registerServer(addr.IP.String(), data)
 	}
 	stopCh := make(chan struct{})
-	go udp.HandleUDP(8080, udpHandler, stopCh)
+	go v2.HandleUDP(8080, udpHandler, stopCh)
 }

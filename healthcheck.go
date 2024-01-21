@@ -49,7 +49,8 @@ func SendHealthchecks(servers ServerMap) ServerMap {
 	}
 	wg.Wait()
 
-	log.Println("healthy servers:", len(FilterHealthyServers(checked)), "out of", len(servers))
+	// TODO: Replace log spam with Prometheus counter.
+	//log.Println("healthy servers:", len(FilterHealthyServers(checked)), "out of", len(servers))
 	return checked
 }
 
