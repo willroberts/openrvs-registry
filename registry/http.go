@@ -69,6 +69,8 @@ func (r *registry) HandleHTTP(listenAddress string) error {
 		}
 
 		r.AddServer(ip, data)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("server added successfully"))
 	})
 
 	return http.ListenAndServe(string(listenAddress), nil)
