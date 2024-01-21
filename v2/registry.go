@@ -108,5 +108,5 @@ func (r *registry) UpdateServerHealth() {
 	r.GameServerMapLock.Lock()
 	defer r.GameServerMapLock.Unlock()
 
-	r.GameServerMap = v1.SendHealthchecks(r.GameServerMap)
+	r.GameServerMap = v1.SendHealthchecks(r.GameServerMap, r.Config.HealthcheckTimeout)
 }

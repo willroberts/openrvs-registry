@@ -9,9 +9,6 @@ import (
 )
 
 const (
-	// HealthCheckTimeout is the amount of time to wait before closing the UDP socket.
-	HealthCheckTimeout = 5 * time.Second // Values below 3 lose data.
-
 	// FailedCheckThreshold is used to hide servers after failing healthchecks.
 	FailedCheckThreshold = 60 // 30 minutes
 
@@ -29,7 +26,7 @@ const (
 // the CSV file, since restarting the service currently restarts the number of
 // consecutive failed checks (and we need over 20,000 failed checks to
 // constitute a week).
-func SendHealthchecks(servers GameServerMap) GameServerMap {
+func SendHealthchecks(servers GameServerMap, timeout time.Duration) GameServerMap {
 	var (
 		checked = make(GameServerMap, 0) // Output map.
 		wg      sync.WaitGroup           // For synchronizing the UDP beacons.
@@ -40,7 +37,7 @@ func SendHealthchecks(servers GameServerMap) GameServerMap {
 		// Kick off this work in a new thread.
 		wg.Add(1)
 		go func(k Hostport, s GameServer) {
-			updated := updateHealth(s)
+			updated := updateHealth(s, timeout)
 			lock.Lock()
 			checked[k] = updated
 			lock.Unlock()
@@ -54,10 +51,10 @@ func SendHealthchecks(servers GameServerMap) GameServerMap {
 
 // updateHealth modifies and returns a GameServer based on a healthcheck
 // result.
-func updateHealth(s GameServer) GameServer {
+func updateHealth(s GameServer, timeout time.Duration) GameServer {
 	// Send a UDP beacon and determine if it failed.
 	var failed bool
-	reportBytes, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout)
+	reportBytes, err := beacon.GetServerReport(s.IP, s.Port+1000, timeout)
 	if err != nil {
 		failed = true // No need to log connection refused, timeout, etc.
 	}
