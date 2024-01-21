@@ -163,7 +163,7 @@ func (r *registry) updateServerHealth(
 	} else {
 		s.Health.ParseFailed = false
 		s.Name = report.ServerName
-		s.GameMode = report.CurrentMode
+		s.GameMode = ravenshield.GameModes[report.CurrentMode]
 	}
 
 	// Mark unhealthy servers healthy again after three successful checks.
