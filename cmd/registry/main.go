@@ -82,7 +82,16 @@ func main() {
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
 		for {
-			reg.UpdateServerHealth()
+			reg.UpdateServerHealth(
+				// onHealthy
+				func(s GameServer) {
+					log.Println("server is now healthy:", s.IP, s.Port)
+				},
+				// onUnhealthy
+				func(s GameServer) {
+					log.Println("server is now unhealthy:", s.IP, s.Port)
+				},
+			)
 			time.Sleep(config.HealthcheckInterval)
 		}
 	}()

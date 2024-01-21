@@ -19,4 +19,5 @@ type HealthStatus struct {
 	Expired      bool
 	PassedChecks int
 	FailedChecks int
+	ParseFailed  bool
 }

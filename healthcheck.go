@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -26,7 +25,12 @@ const (
 // the CSV file, since restarting the service currently restarts the number of
 // consecutive failed checks (and we need over 20,000 failed checks to
 // constitute a week).
-func SendHealthchecks(servers GameServerMap, timeout time.Duration) GameServerMap {
+func SendHealthchecks(
+	servers GameServerMap,
+	timeout time.Duration,
+	onHealthy func(GameServer),
+	onUnhealthy func(GameServer),
+) GameServerMap {
 	var (
 		checked = make(GameServerMap, 0) // Output map.
 		wg      sync.WaitGroup           // For synchronizing the UDP beacons.
@@ -37,7 +41,7 @@ func SendHealthchecks(servers GameServerMap, timeout time.Duration) GameServerMa
 		// Kick off this work in a new thread.
 		wg.Add(1)
 		go func(k Hostport, s GameServer) {
-			updated := updateHealth(s, timeout)
+			updated := updateHealth(s, timeout, onHealthy, onUnhealthy)
 			lock.Lock()
 			checked[k] = updated
 			lock.Unlock()
@@ -51,7 +55,12 @@ func SendHealthchecks(servers GameServerMap, timeout time.Duration) GameServerMa
 
 // updateHealth modifies and returns a GameServer based on a healthcheck
 // result.
-func updateHealth(s GameServer, timeout time.Duration) GameServer {
+func updateHealth(
+	s GameServer,
+	timeout time.Duration,
+	onHealthy func(GameServer),
+	onUnhealthy func(GameServer),
+) GameServer {
 	// Send a UDP beacon and determine if it failed.
 	var failed bool
 	reportBytes, err := beacon.GetServerReport(s.IP, s.Port+1000, timeout)
@@ -64,7 +73,7 @@ func updateHealth(s GameServer, timeout time.Duration) GameServer {
 		s.Health.PassedChecks = 0 // 0 checks in a row have passed
 		s.Health.FailedChecks++   // Another check in a row has failed
 		if s.Health.FailedChecks == FailedCheckThreshold {
-			log.Println("server is now unhealthy:", s.IP, s.Port)
+			onUnhealthy(s)
 			s.Health.Healthy = false // Too many failed checks in a row.
 		}
 		if s.Health.FailedChecks >= MaxFailedChecks {
@@ -80,9 +89,9 @@ func updateHealth(s GameServer, timeout time.Duration) GameServer {
 	// Update name and game mode in case they have changed.
 	report, err := beacon.ParseServerReport(s.IP, reportBytes)
 	if err != nil {
-
-		log.Println("failed to parse server report when updating name and game mode:", err)
+		s.Health.ParseFailed = true
 	} else {
+		s.Health.ParseFailed = false
 		s.Name = report.ServerName
 		s.GameMode = report.CurrentMode
 	}
@@ -90,7 +99,7 @@ func updateHealth(s GameServer, timeout time.Duration) GameServer {
 	// Mark unhealthy servers healthy again after three successful checks.
 	if !s.Health.Healthy && s.Health.PassedChecks >= PassedCheckThreshold {
 		s.Health.Healthy = true // Server is healthy again.
-		log.Println("server is now healthy:", s.IP, s.Port)
+		onHealthy(s)
 	}
 
 	return s

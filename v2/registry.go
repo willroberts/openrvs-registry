@@ -104,9 +104,17 @@ func (r *registry) ServerCount() int {
 	return len(r.GameServerMap)
 }
 
-func (r *registry) UpdateServerHealth() {
+func (r *registry) UpdateServerHealth(
+	onHealthy func(s GameServer),
+	onUnhealthy func(s GameServer),
+) {
 	r.GameServerMapLock.Lock()
 	defer r.GameServerMapLock.Unlock()
 
-	r.GameServerMap = v1.SendHealthchecks(r.GameServerMap, r.Config.HealthcheckTimeout)
+	r.GameServerMap = v1.SendHealthchecks(
+		r.GameServerMap,
+		r.Config.HealthcheckTimeout,
+		onHealthy,
+		onUnhealthy,
+	)
 }
