@@ -17,7 +17,7 @@ type Registry interface {
 	SaveServers(csvFile string) error
 	AddServer(ip string, data []byte) error
 	ServerCount() int
-	UpdateServerHealth()
+	UpdateServerHealth(onHealthy func(v1.GameServer), onUnhealthy func(v1.GameServer))
 
 	HandleHTTP(listenAddress v1.Hostport) error
 }
@@ -105,8 +105,8 @@ func (r *registry) ServerCount() int {
 }
 
 func (r *registry) UpdateServerHealth(
-	onHealthy func(s GameServer),
-	onUnhealthy func(s GameServer),
+	onHealthy func(s v1.GameServer),
+	onUnhealthy func(s v1.GameServer),
 ) {
 	r.GameServerMapLock.Lock()
 	defer r.GameServerMapLock.Unlock()

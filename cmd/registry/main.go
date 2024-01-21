@@ -84,11 +84,11 @@ func main() {
 		for {
 			reg.UpdateServerHealth(
 				// onHealthy
-				func(s GameServer) {
+				func(s registry.GameServer) {
 					log.Println("server is now healthy:", s.IP, s.Port)
 				},
 				// onUnhealthy
-				func(s GameServer) {
+				func(s registry.GameServer) {
 					log.Println("server is now unhealthy:", s.IP, s.Port)
 				},
 			)
