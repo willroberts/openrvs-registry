@@ -14,7 +14,7 @@ import (
 
 	beacon "github.com/willroberts/openrvs-beacon"
 	registry "github.com/willroberts/openrvs-registry"
-	"github.com/willroberts/openrvs-registry/v2/udp"
+	v2 "github.com/willroberts/openrvs-registry/v2"
 )
 
 var (
@@ -235,5 +235,5 @@ func serveUDP() {
 		registerServer(addr.IP.String(), data)
 	}
 	stopCh := make(chan struct{})
-	go udp.HandleUDP(8080, udpHandler, stopCh)
+	go v2.HandleUDP(8080, udpHandler, stopCh)
 }
