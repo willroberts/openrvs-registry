@@ -29,17 +29,17 @@ const (
 // the CSV file, since restarting the service currently restarts the number of
 // consecutive failed checks (and we need over 20,000 failed checks to
 // constitute a week).
-func SendHealthchecks(servers ServerMap) ServerMap {
+func SendHealthchecks(servers GameServerMap) GameServerMap {
 	var (
-		checked = make(ServerMap, 0) // Output map.
-		wg      sync.WaitGroup       // For synchronizing the UDP beacons.
-		lock    = sync.RWMutex{}     // For safely accessing checked map.
+		checked = make(GameServerMap, 0) // Output map.
+		wg      sync.WaitGroup           // For synchronizing the UDP beacons.
+		lock    = sync.RWMutex{}         // For safely accessing checked map.
 	)
 
 	for k, s := range servers {
 		// Kick off this work in a new thread.
 		wg.Add(1)
-		go func(k Hostport, s Server) {
+		go func(k Hostport, s GameServer) {
 			updated := UpdateHealthStatus(s)
 			lock.Lock()
 			checked[k] = updated
@@ -54,9 +54,9 @@ func SendHealthchecks(servers ServerMap) ServerMap {
 	return checked
 }
 
-// UpdateHealthStatus modifies and returns a Server based on a healthcheck
+// UpdateHealthStatus modifies and returns a GameServer based on a healthcheck
 // result.
-func UpdateHealthStatus(s Server) Server {
+func UpdateHealthStatus(s GameServer) GameServer {
 	// Send a UDP beacon and determine if it failed.
 	var failed bool
 	reportBytes, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout)
@@ -102,8 +102,8 @@ func UpdateHealthStatus(s Server) Server {
 
 // FilterHealthyServers iterates through a map of Servers, and returns a subset
 // maps of Servers which only contains the servers marked as being healthy.
-func FilterHealthyServers(servers ServerMap) ServerMap {
-	filtered := make(ServerMap)
+func FilterHealthyServers(servers GameServerMap) GameServerMap {
+	filtered := make(GameServerMap)
 	for k, s := range servers {
 		if s.Health.Healthy {
 			filtered[k] = s // Copy to output map.

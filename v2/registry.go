@@ -6,8 +6,9 @@ type Registry interface {
 }
 
 type registry struct {
-	Config RegistryConfig
-	CSV    v1.CSVSerializer
+	Config        RegistryConfig
+	CSV           v1.CSVSerializer
+	GameServerMap v1.GameServerMap
 }
 
 func NewRegistry(config RegistryConfig) Registry {

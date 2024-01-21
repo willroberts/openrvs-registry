@@ -1,10 +1,10 @@
 package registry
 
-// ServerMap maps unique Hostport IDs to server metadata.
-type ServerMap map[Hostport]Server
+// GameServerMap maps unique Hostport IDs to server metadata.
+type GameServerMap map[Hostport]GameServer
 
-// Server contains all relevant fields for an individual game server.
-type Server struct {
+// GameServer contains all relevant fields for an individual game server.
+type GameServer struct {
 	Name     string
 	IP       string
 	Port     int

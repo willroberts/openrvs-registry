@@ -18,11 +18,11 @@ import (
 )
 
 var (
-	seedPath       string
-	checkpointPath string
-	serverMap      = make(registry.ServerMap) // Stores all known servers.
-	serverMapLock  = sync.RWMutex{}           // For safely accessing the server map.
-	csv            = registry.NewCSVSerializer()
+	seedPath          string
+	checkpointPath    string
+	gameServerMap     = make(registry.GameServerMap) // Stores all known servers.
+	gameServerMapLock = sync.RWMutex{}               // For safely accessing the server map.
+	csv               = registry.NewCSVSerializer()
 )
 
 func init() {
@@ -41,18 +41,16 @@ func main() {
 		HealthcheckInterval: 30 * time.Second,
 	}
 
-	reg := v2.NewRegistry(config)
-
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
 	log.Println("loading servers from file")
 	var err error
-	serverMap, err = LoadServers(config.CheckpointPath)
+	gameServerMap, err = LoadServers(config.CheckpointPath)
 	if err != nil {
 		log.Println("unable to read checkpoint.csv; falling back to seed.csv")
-		serverMap, err = LoadServers(config.SeedPath)
+		gameServerMap, err = LoadServers(config.SeedPath)
 		if err != nil {
 			log.Println("Warning: Unable to load servers from csv: ", err)
-			serverMap = make(registry.ServerMap)
+			gameServerMap = make(registry.GameServerMap)
 		}
 	}
 
@@ -67,12 +65,12 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(config.CheckpointInterval)
-			serverMapLock.Lock()
+			gameServerMapLock.Lock()
 			log.Println("Saving checkpoint file to ", config.CheckpointPath)
-			if err := os.WriteFile(config.CheckpointPath, csv.Serialize(serverMap), 0644); err != nil {
+			if err := os.WriteFile(config.CheckpointPath, csv.Serialize(gameServerMap), 0644); err != nil {
 				log.Println("Failed to write checkpoint file:", err)
 			}
-			serverMapLock.Unlock()
+			gameServerMapLock.Unlock()
 		}
 	}()
 
@@ -83,9 +81,9 @@ func main() {
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
 		for {
-			serverMapLock.Lock()
-			serverMap = registry.SendHealthchecks(serverMap)
-			serverMapLock.Unlock()
+			gameServerMapLock.Lock()
+			gameServerMap = registry.SendHealthchecks(gameServerMap)
+			gameServerMapLock.Unlock()
 			time.Sleep(config.HealthcheckInterval)
 		}
 	}()
@@ -96,18 +94,18 @@ func main() {
 
 	// Create an HTTP handler which returns healthy servers.
 	http.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(csv.Serialize(registry.FilterHealthyServers(serverMap)))
+		w.Write(csv.Serialize(registry.FilterHealthyServers(gameServerMap)))
 	})
 
 	// Create an HTTP handler which returns all servers.
 	http.HandleFunc("/servers/all", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(csv.Serialize(serverMap))
+		w.Write(csv.Serialize(gameServerMap))
 	})
 
 	// Create an HTTP handler which returns all servers with detailed health status.
 	http.HandleFunc("/servers/debug", func(w http.ResponseWriter, r *http.Request) {
 		csv.EnableDebug(true)
-		w.Write(csv.Serialize(serverMap))
+		w.Write(csv.Serialize(gameServerMap))
 		csv.EnableDebug(false)
 	})
 
@@ -178,14 +176,14 @@ func registerServer(ip string, msg []byte) {
 	}
 
 	// Creates and saves a Server using the beacon data.
-	serverMapLock.Lock()
-	serverMap[registry.NewHostport(report.IPAddress, report.Port)] = registry.Server{
+	gameServerMapLock.Lock()
+	gameServerMap[registry.NewHostport(report.IPAddress, report.Port)] = registry.GameServer{
 		Name:     report.ServerName,
 		IP:       report.IPAddress,
 		Port:     report.Port,
 		GameMode: registry.GameModes[report.CurrentMode],
 	}
-	serverMapLock.Unlock()
+	gameServerMapLock.Unlock()
 
 	// Logs the new server count.
 	logServerCount()
@@ -193,14 +191,14 @@ func registerServer(ip string, msg []byte) {
 
 // Write the server count to the console.
 func logServerCount() {
-	log.Printf("there are now %d registered servers", len(serverMap))
+	log.Printf("there are now %d registered servers", len(gameServerMap))
 }
 
 // LoadServers reads a CSV file from disk.
 // Every time the app starts up, it checks the file 'checkpoint.csv' to see if
 // it can pick up where it last left off. If this file does not exist, fall back
 // to 'seed.csv', which contains the initial seed list for the app.
-func LoadServers(csvPath string) (registry.ServerMap, error) {
+func LoadServers(csvPath string) (registry.GameServerMap, error) {
 	// First, try to read checkpoint file.
 	log.Println("reading checkpoint file at", csvPath)
 	bytes, err := os.ReadFile(csvPath)
