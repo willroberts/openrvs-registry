@@ -45,11 +45,11 @@ $ curl -X POST https://openrvs.org/servers/add -d "host:port"
 For example, in `RavenShield.ini`:
 ```ini
 [URL]
-Port=6776
+Port=6777
 
 [IpDrv.UdpBeacon]
-ServerBeaconPort=7776
-BeaconPort=8776
+ServerBeaconPort=7777
+BeaconPort=8777
 ```
 
 ## Listeners
