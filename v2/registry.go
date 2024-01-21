@@ -17,3 +17,7 @@ func NewRegistry(config RegistryConfig) Registry {
 		CSV:    v1.NewCSVSerializer(),
 	}
 }
+
+func (r *registry) AddServer(ip string, data []byte) {
+	// Not yet implemented.
+}
