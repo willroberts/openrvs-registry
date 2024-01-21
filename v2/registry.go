@@ -26,7 +26,7 @@ type Registry interface {
 
 type registry struct {
 	Config            RegistryConfig
-	CSV               v1.CSVSerializer
+	CSV               CSVSerializer
 	GameServerMap     v1.GameServerMap
 	GameServerMapLock sync.RWMutex
 }
@@ -34,7 +34,7 @@ type registry struct {
 func NewRegistry(config RegistryConfig) Registry {
 	return &registry{
 		Config:        config,
-		CSV:           v1.NewCSVSerializer(),
+		CSV:           NewCSVSerializer(),
 		GameServerMap: make(v1.GameServerMap),
 	}
 }
