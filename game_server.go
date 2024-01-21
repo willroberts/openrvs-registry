@@ -10,11 +10,12 @@ type GameServer struct {
 	Port     int
 	GameMode string
 
-	Health HealthStatus
+	Health GameServerHealthStatus
 }
 
-// HealthStatus contains information needed to track whether a server is healthy.
-type HealthStatus struct {
+// GameServerHealthStatus contains information needed to track whether a server
+// is healthy.
+type GameServerHealthStatus struct {
 	Healthy      bool
 	Expired      bool
 	PassedChecks int
