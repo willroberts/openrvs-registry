@@ -16,7 +16,7 @@ func (r *registry) HandleHTTP(listenAddress v1.Hostport) error {
 	})
 
 	http.HandleFunc("/servers", func(w http.ResponseWriter, req *http.Request) {
-		w.Write(r.CSV.Serialize(filterHealthy(r.GameServerMap)))
+		w.Write(r.CSV.Serialize(v1.FilterHealthyServers(r.GameServerMap)))
 	})
 
 	http.HandleFunc("/servers/all", func(w http.ResponseWriter, req *http.Request) {
@@ -67,9 +67,4 @@ func (r *registry) HandleHTTP(listenAddress v1.Hostport) error {
 	})
 
 	return http.ListenAndServe(string(listenAddress), nil)
-}
-
-func filterHealthy(input v1.GameServerMap) v1.GameServerMap {
-	// Not yet implemented.
-	return input
 }
