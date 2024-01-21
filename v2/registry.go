@@ -1,3 +1,4 @@
+// Package v2 provides automated management of the OpenRVS server list.
 package v2
 
 import (
