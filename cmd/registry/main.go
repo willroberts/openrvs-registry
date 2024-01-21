@@ -41,6 +41,8 @@ func main() {
 		HealthcheckInterval: 30 * time.Second,
 	}
 
+	reg := v2.NewRegistry(config)
+
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
 	log.Println("loading servers from file")
 	var err error
