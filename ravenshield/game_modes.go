@@ -1,4 +1,4 @@
-package registry
+package ravenshield
 
 // GameModes contains a map of all active game types, mapping them to either
 // Adversarial or Cooperative mode identifiers 'adv' and 'coop'.

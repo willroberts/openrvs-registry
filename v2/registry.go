@@ -8,6 +8,7 @@ import (
 
 	beacon "github.com/willroberts/openrvs-beacon"
 	v1 "github.com/willroberts/openrvs-registry"
+	"github.com/willroberts/openrvs-registry/ravenshield"
 )
 
 type Registry interface {
@@ -89,7 +90,7 @@ func (r *registry) AddServer(ip string, data []byte) error {
 		Name:     report.ServerName,
 		IP:       report.IPAddress,
 		Port:     report.Port,
-		GameMode: v1.GameModes[report.CurrentMode],
+		GameMode: ravenshield.GameModes[report.CurrentMode],
 	}
 
 	return nil
