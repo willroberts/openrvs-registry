@@ -29,8 +29,8 @@ func main() {
 		CheckpointInterval:            5 * time.Minute,
 		HealthcheckInterval:           30 * time.Second,
 		HealthcheckTimeout:            5 * time.Second,
-		HealthcheckHealthyThreshold:   60, // 30 minutes,
-		HealthcheckUnhealthyThreshold: 1,
+		HealthcheckHealthyThreshold:   1,
+		HealthcheckUnhealthyThreshold: 60,   // 30 minutes.
 		HealthcheckHiddenThreshold:    5760, // 2 days.
 		ListenAddr:                    "127.0.0.1:8080",
 	}
