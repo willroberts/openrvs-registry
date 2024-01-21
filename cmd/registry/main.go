@@ -2,13 +2,9 @@ package main
 
 import (
 	"flag"
-	"io"
 	"log"
 	"net"
-	"net/http"
 	"os"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -40,7 +36,10 @@ func main() {
 		CheckpointInterval:  5 * time.Minute,
 		HealthcheckInterval: 30 * time.Second,
 		HealthcheckTimeout:  5 * time.Second,
+		ListenAddr:          registry.Hostport("127.0.0.1", 8080),
 	}
+
+	reg := v2.NewRegistry(config)
 
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
 	log.Println("loading servers from file")
@@ -89,71 +88,9 @@ func main() {
 		}
 	}()
 
-	// Test automatic registration.
-	// Uncomment to replay beacons to your development server.
-	//go testUDP()
-
-	// Create an HTTP handler which returns healthy servers.
-	http.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(csv.Serialize(registry.FilterHealthyServers(gameServerMap)))
-	})
-
-	// Create an HTTP handler which returns all servers.
-	http.HandleFunc("/servers/all", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(csv.Serialize(gameServerMap))
-	})
-
-	// Create an HTTP handler which returns all servers with detailed health status.
-	http.HandleFunc("/servers/debug", func(w http.ResponseWriter, r *http.Request) {
-		csv.EnableDebug(true)
-		w.Write(csv.Serialize(gameServerMap))
-		csv.EnableDebug(false)
-	})
-
-	// Create an HTTP handler which returns the latest release version from Github.
-	http.HandleFunc("/latest", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(registry.GetLatestReleaseVersion())
-	})
-
-	// Create an HTTP handler which accepts hints for new servers to healthcheck.
-	http.HandleFunc("/servers/add", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		defer r.Body.Close()
-
-		parts := strings.Split(string(body), ":")
-		if len(parts) != 2 {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		host := parts[0]
-		port, err := strconv.Atoi(parts[1])
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		reportBytes, err := beacon.GetServerReport(host, port+1000, registry.HealthCheckTimeout)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		registerServer(host, reportBytes)
-	})
-
-	// Start listening on TCP/8080 for HTTP requests from OpenRVS clients.
-	log.Println("listening on http://127.0.0.1:8080")
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
+	// Start listening for HTTP requests from OpenRVS clients.
+	log.Printf("Listening on http://%s", reg.Config.ListenAddr)
+	log.Fatal(reg.HandleHTTP(reg.Config.ListenAddr))
 }
 
 // When we receive UDP traffic from OpenRVS Game Servers, parse the beacon and
