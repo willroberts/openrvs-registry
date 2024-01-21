@@ -22,7 +22,7 @@ var (
 	checkpointPath string
 
 	servers             = make(registry.ServerMap) // Stores all known servers.
-	lock                = sync.RWMutex{}           // For safely accessing the server map.
+	serverMapLock       = sync.RWMutex{}           // For safely accessing the server map.
 	checkpointInterval  = 5 * time.Minute          // Save to disk this often.
 	healthcheckInterval = 30 * time.Second         // Send healthchecks this often.
 
@@ -69,9 +69,12 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(checkpointInterval)
-			lock.Lock()
-			SaveServers(checkpointPath, servers)
-			lock.Unlock()
+			serverMapLock.Lock()
+			log.Println("Saving checkpoint file to ", checkpointPath)
+			if err := os.WriteFile(checkpointPath, csv.Serialize(servers), 0644); err != nil {
+				log.Println("Failed to write checkpoint file:", err)
+			}
+			serverMapLock.Unlock()
 		}
 	}()
 
@@ -82,9 +85,9 @@ func main() {
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
 		for {
-			lock.Lock()
+			serverMapLock.Lock()
 			servers = registry.SendHealthchecks(servers)
-			lock.Unlock()
+			serverMapLock.Unlock()
 			time.Sleep(healthcheckInterval)
 		}
 	}()
@@ -180,14 +183,14 @@ func registerServer(ip string, msg []byte) {
 	}
 
 	// Creates and saves a Server using the beacon data.
-	lock.Lock()
+	serverMapLock.Lock()
 	servers[registry.NewHostport(report.IPAddress, report.Port)] = registry.Server{
 		Name:     report.ServerName,
 		IP:       report.IPAddress,
 		Port:     report.Port,
 		GameMode: registry.GameModes[report.CurrentMode],
 	}
-	lock.Unlock()
+	serverMapLock.Unlock()
 
 	// Logs the new server count.
 	logServerCount()
@@ -216,13 +219,6 @@ func LoadServers(csvPath string) (registry.ServerMap, error) {
 		return nil, err
 	}
 	return parsed, nil
-}
-
-// SaveServers writes the latest servers to disk.
-func SaveServers(csvPath string, servers registry.ServerMap) error {
-	// Write current servers to checkpoint file.
-	log.Println("saving checkpoint file to", csvPath)
-	return os.WriteFile(csvPath, csv.Serialize(servers), 0644)
 }
 
 func serveUDP() {
