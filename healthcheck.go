@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	// FailedCheckThreshold is used to hide servers after failing healthchecks.
-	FailedCheckThreshold = 60 // 30 minutes
+	// failedCheckThreshold is used to hide servers after failing healthchecks.
+	failedCheckThreshold = 60 // 30 minutes
 
-	// PassedCheckThreshold is used to show servers again after being marked unhealthy.
-	PassedCheckThreshold = 1
+	// passedCheckThreshold is used to show servers again after being marked unhealthy.
+	passedCheckThreshold = 1
 
-	// MaxFailedChecks is used to prune servers from the list entirely.
-	MaxFailedChecks = 5760 // 2 days
+	// maxFailedChecks is used to prune servers from the list entirely.
+	maxFailedChecks = 5760 // 2 days
 )
 
 // SendHealthchecks queries each known server and updates its health status in
@@ -72,11 +72,11 @@ func updateHealth(
 	if failed {
 		s.Health.PassedChecks = 0 // 0 checks in a row have passed
 		s.Health.FailedChecks++   // Another check in a row has failed
-		if s.Health.FailedChecks == FailedCheckThreshold {
+		if s.Health.FailedChecks == failedCheckThreshold {
 			onUnhealthy(s)
 			s.Health.Healthy = false // Too many failed checks in a row.
 		}
-		if s.Health.FailedChecks >= MaxFailedChecks {
+		if s.Health.FailedChecks >= maxFailedChecks {
 			s.Health.Expired = true // TODO: Prune expired servers.
 		}
 		return s
@@ -97,7 +97,7 @@ func updateHealth(
 	}
 
 	// Mark unhealthy servers healthy again after three successful checks.
-	if !s.Health.Healthy && s.Health.PassedChecks >= PassedCheckThreshold {
+	if !s.Health.Healthy && s.Health.PassedChecks >= passedCheckThreshold {
 		s.Health.Healthy = true // Server is healthy again.
 		onHealthy(s)
 	}
