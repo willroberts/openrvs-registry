@@ -77,7 +77,7 @@ func main() {
 	}
 	stopCh := make(chan struct{})
 	log.Println("listening on udp://0.0.0.0:8080")
-	go v2.HandleUDP(8080, udpHandler, stopCh)
+	go reg.HandleUDP(8080, udpHandler, stopCh)
 
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {

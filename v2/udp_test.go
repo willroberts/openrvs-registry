@@ -13,7 +13,8 @@ func TestUDP(t *testing.T) {
 		}
 	}
 
+	reg := NewRegistry(RegistryConfig{})
 	stopCh := make(chan struct{})
-	go HandleUDP(9999, testHandler, stopCh)
+	go reg.HandleUDP(9999, testHandler, stopCh)
 	stopCh <- struct{}{}
 }

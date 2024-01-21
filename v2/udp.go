@@ -7,7 +7,7 @@ import (
 
 type UDPHandler func(addr *net.UDPAddr, data []byte, err error)
 
-func HandleUDP(port int, h UDPHandler, stopCh chan struct{}) error {
+func (r *registry) HandleUDP(port int, h UDPHandler, stopCh chan struct{}) error {
 	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err

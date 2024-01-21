@@ -18,6 +18,7 @@ type Registry interface {
 	UpdateServerHealth(onHealthy func(v1.GameServer), onUnhealthy func(v1.GameServer))
 
 	HandleHTTP(listenAddress v1.Hostport) error
+	HandleUDP(port int, h UDPHandler, stopCh chan struct{}) error
 }
 
 type registry struct {
