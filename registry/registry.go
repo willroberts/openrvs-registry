@@ -134,7 +134,11 @@ func (r *registry) updateServerHealth(
 	onHealthy func(GameServer),
 	onUnhealthy func(GameServer),
 ) GameServer {
-	reportBytes, err := beacon.GetServerReport(s.IP, s.Port+1000, r.Config.HealthcheckTimeout)
+	if s.BeaconPort == 0 {
+		// Assume BeaconPort is Port+1000 if we don't know it yet.
+		s.BeaconPort = s.Port + 1000
+	}
+	reportBytes, err := beacon.GetServerReport(s.IP, s.BeaconPort, r.Config.HealthcheckTimeout)
 	if err != nil {
 		s.Health.PassedChecks = 0 // 0 checks in a row have passed
 		s.Health.FailedChecks++   // Another check in a row has failed

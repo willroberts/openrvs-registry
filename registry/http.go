@@ -56,8 +56,8 @@ func (r *registry) HandleHTTP(listenAddress string) error {
 			return
 		}
 
-		// FIXME: This assumes BeaconPort is always Port+1000.
-		data, err := beacon.GetServerReport(ip, port+1000, r.Config.HealthcheckTimeout)
+		beaconPort := port + 1000
+		data, err := beacon.GetServerReport(ip, beaconPort, r.Config.HealthcheckTimeout)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
