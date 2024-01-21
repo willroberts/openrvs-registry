@@ -4,7 +4,8 @@ import (
 	"time"
 )
 
-type RegistryConfig struct {
+// Config contains the configuration values for the Registry service.
+type Config struct {
 	SeedPath           string
 	CheckpointPath     string
 	CheckpointInterval time.Duration

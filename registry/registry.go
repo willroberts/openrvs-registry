@@ -12,6 +12,8 @@ import (
 	"github.com/willroberts/openrvs-registry/ravenshield"
 )
 
+// Registry maintains a list of servers, with functionality for healthchecking
+// and loading/saving servers in CSV format.
 type Registry interface {
 	LoadServers(csvFile string) error
 	SaveServers(csvFile string) error
@@ -24,13 +26,14 @@ type Registry interface {
 }
 
 type registry struct {
-	Config            RegistryConfig
+	Config            Config
 	CSV               CSVSerializer
 	GameServerMap     GameServerMap
 	GameServerMapLock sync.RWMutex
 }
 
-func NewRegistry(config RegistryConfig) Registry {
+// NewRegistry initializes and returns a Registry.
+func NewRegistry(config Config) Registry {
 	return &registry{
 		Config:        config,
 		CSV:           NewCSVSerializer(),

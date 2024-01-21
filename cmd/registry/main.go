@@ -23,7 +23,7 @@ func init() {
 func main() {
 	log.Println("openrvs-registry process started")
 
-	config := registry.RegistryConfig{
+	config := registry.Config{
 		SeedPath:                      seedPath,
 		CheckpointPath:                checkpointPath,
 		CheckpointInterval:            5 * time.Minute,
