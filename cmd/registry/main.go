@@ -20,7 +20,7 @@ import (
 var (
 	seedPath       string
 	checkpointPath string
-	servers        = make(registry.ServerMap) // Stores all known servers.
+	serverMap      = make(registry.ServerMap) // Stores all known servers.
 	serverMapLock  = sync.RWMutex{}           // For safely accessing the server map.
 	csv            = registry.NewCSVSerializer()
 )
@@ -44,13 +44,13 @@ func main() {
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
 	log.Println("loading servers from file")
 	var err error
-	servers, err = LoadServers(config.CheckpointPath)
+	serverMap, err = LoadServers(config.CheckpointPath)
 	if err != nil {
 		log.Println("unable to read checkpoint.csv; falling back to seed.csv")
-		servers, err = LoadServers(config.SeedPath)
+		serverMap, err = LoadServers(config.SeedPath)
 		if err != nil {
 			log.Println("Warning: Unable to load servers from csv: ", err)
-			servers = make(registry.ServerMap)
+			serverMap = make(registry.ServerMap)
 		}
 	}
 
@@ -67,7 +67,7 @@ func main() {
 			time.Sleep(config.CheckpointInterval)
 			serverMapLock.Lock()
 			log.Println("Saving checkpoint file to ", config.CheckpointPath)
-			if err := os.WriteFile(config.CheckpointPath, csv.Serialize(servers), 0644); err != nil {
+			if err := os.WriteFile(config.CheckpointPath, csv.Serialize(serverMap), 0644); err != nil {
 				log.Println("Failed to write checkpoint file:", err)
 			}
 			serverMapLock.Unlock()
@@ -82,7 +82,7 @@ func main() {
 	go func() {
 		for {
 			serverMapLock.Lock()
-			servers = registry.SendHealthchecks(servers)
+			serverMap = registry.SendHealthchecks(serverMap)
 			serverMapLock.Unlock()
 			time.Sleep(config.HealthcheckInterval)
 		}
@@ -94,18 +94,18 @@ func main() {
 
 	// Create an HTTP handler which returns healthy servers.
 	http.HandleFunc("/servers", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(csv.Serialize(registry.FilterHealthyServers(servers)))
+		w.Write(csv.Serialize(registry.FilterHealthyServers(serverMap)))
 	})
 
 	// Create an HTTP handler which returns all servers.
 	http.HandleFunc("/servers/all", func(w http.ResponseWriter, r *http.Request) {
-		w.Write(csv.Serialize(servers))
+		w.Write(csv.Serialize(serverMap))
 	})
 
 	// Create an HTTP handler which returns all servers with detailed health status.
 	http.HandleFunc("/servers/debug", func(w http.ResponseWriter, r *http.Request) {
 		csv.EnableDebug(true)
-		w.Write(csv.Serialize(servers))
+		w.Write(csv.Serialize(serverMap))
 		csv.EnableDebug(false)
 	})
 
@@ -177,7 +177,7 @@ func registerServer(ip string, msg []byte) {
 
 	// Creates and saves a Server using the beacon data.
 	serverMapLock.Lock()
-	servers[registry.NewHostport(report.IPAddress, report.Port)] = registry.Server{
+	serverMap[registry.NewHostport(report.IPAddress, report.Port)] = registry.Server{
 		Name:     report.ServerName,
 		IP:       report.IPAddress,
 		Port:     report.Port,
@@ -191,7 +191,7 @@ func registerServer(ip string, msg []byte) {
 
 // Write the server count to the console.
 func logServerCount() {
-	log.Printf("there are now %d registered servers", len(servers))
+	log.Printf("there are now %d registered servers", len(serverMap))
 }
 
 // LoadServers reads a CSV file from disk.
