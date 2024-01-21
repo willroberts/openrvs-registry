@@ -30,7 +30,7 @@ func main() {
 		CheckpointInterval:  5 * time.Minute,
 		HealthcheckInterval: 30 * time.Second,
 		HealthcheckTimeout:  5 * time.Second,
-		ListenAddr:          registry.Hostport("127.0.0.1:8080"),
+		ListenAddr:          "127.0.0.1:8080",
 	}
 
 	reg := v2.NewRegistry(config)

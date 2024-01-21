@@ -2,6 +2,7 @@ package v2
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"os"
 	"sync"
@@ -18,7 +19,7 @@ type Registry interface {
 	ServerCount() int
 	UpdateServerHealth(onHealthy func(v1.GameServer), onUnhealthy func(v1.GameServer))
 
-	HandleHTTP(listenAddress v1.Hostport) error
+	HandleHTTP(listenAddress string) error
 	HandleUDP(port int, h UDPHandler, stopCh chan struct{}) error
 }
 
@@ -85,7 +86,7 @@ func (r *registry) AddServer(ip string, data []byte) error {
 		return errors.New("skipping server with no game mode")
 	}
 
-	serverID := v1.NewHostport(report.IPAddress, report.Port)
+	serverID := fmt.Sprintf("%s:%d", report.IPAddress, report.Port)
 	r.GameServerMap[serverID] = v1.GameServer{
 		Name:     report.ServerName,
 		IP:       report.IPAddress,

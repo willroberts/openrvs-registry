@@ -11,7 +11,7 @@ import (
 	"github.com/willroberts/openrvs-registry/github"
 )
 
-func (r *registry) HandleHTTP(listenAddress v1.Hostport) error {
+func (r *registry) HandleHTTP(listenAddress string) error {
 	http.HandleFunc("/latest", func(w http.ResponseWriter, req *http.Request) {
 		w.Write(github.GetLatestReleaseVersion())
 	})

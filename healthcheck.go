@@ -37,16 +37,16 @@ func SendHealthchecks(
 		lock    = sync.RWMutex{}         // For safely accessing checked map.
 	)
 
-	for k, s := range servers {
+	for hostport, s := range servers {
 		// Kick off this work in a new thread.
 		wg.Add(1)
-		go func(k Hostport, s GameServer) {
+		go func(hostport string, s GameServer) {
 			updated := updateHealth(s, timeout, onHealthy, onUnhealthy)
 			lock.Lock()
-			checked[k] = updated
+			checked[hostport] = updated
 			lock.Unlock()
 			wg.Done()
-		}(k, s)
+		}(hostport, s)
 	}
 	wg.Wait()
 
