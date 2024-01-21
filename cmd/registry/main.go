@@ -53,7 +53,8 @@ func main() {
 		log.Println("unable to read checkpoint.csv; falling back to seed.csv")
 		servers, err = LoadServers(seedPath)
 		if err != nil {
-			log.Fatal("unable to load servers from csv: ", err)
+			log.Println("Warning: Unable to load servers from csv: ", err)
+			servers = make(registry.ServerMap)
 		}
 	}
 
@@ -194,7 +195,7 @@ func registerServer(ip string, msg []byte) {
 
 // Write the server count to the console.
 func logServerCount() {
-	log.Printf("there are now %d registered servers (confirm over http)", len(servers))
+	log.Printf("there are now %d registered servers", len(servers))
 }
 
 // LoadServers reads a CSV file from disk.
@@ -232,7 +233,6 @@ func serveUDP() {
 			return
 		}
 		registerServer(addr.IP.String(), data)
-		log.Println("Server registered:", addr.IP.String()) // TODO: Add port.
 	}
 	stopCh := make(chan struct{})
 	go udp.HandleUDP(8080, udpHandler, stopCh)

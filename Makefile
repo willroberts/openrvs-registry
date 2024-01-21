@@ -15,3 +15,7 @@ test_integ:
 coverage:
 	go test -v -tags=integration -coverprofile=cover.out ./...
 	go tool cover -html=cover.out
+
+.PHONY: run
+run:
+	go run cmd/registry/main.go
