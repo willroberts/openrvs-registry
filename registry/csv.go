@@ -95,7 +95,8 @@ func (c *csvSerializer) Deserialize(b []byte) (GameServerMap, error) {
 		}
 
 		// Save a new GameServer in the GameServerMap.
-		servers[NewHostport(ip, port)] = GameServer{
+		hostport := fmt.Sprintf("%s:%d", ip, port)
+		servers[hostport] = GameServer{
 			Name:     fields[0],
 			IP:       ip,
 			Port:     port,

@@ -1,7 +1,7 @@
 package registry
 
-// GameServerMap maps unique Hostport IDs to server metadata.
-type GameServerMap map[Hostport]GameServer
+// GameServerMap maps unique server IDs to server metadata.
+type GameServerMap map[string]GameServer
 
 // GameServer contains all relevant fields for an individual game server.
 type GameServer struct {
@@ -10,11 +10,12 @@ type GameServer struct {
 	Port     int
 	GameMode string
 
-	Health HealthStatus
+	Health GameServerHealthStatus
 }
 
-// HealthStatus contains information needed to track whether a server is healthy.
-type HealthStatus struct {
+// GameServerHealthStatus contains information needed to track whether a server
+// is healthy.
+type GameServerHealthStatus struct {
 	Healthy      bool
 	Expired      bool
 	PassedChecks int

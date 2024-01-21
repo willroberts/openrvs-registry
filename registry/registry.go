@@ -1,13 +1,15 @@
-package v2
+// Package registry provides automated management of the OpenRVS server list.
+package registry
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"os"
 	"sync"
 
 	beacon "github.com/willroberts/openrvs-beacon"
-	v1 "github.com/willroberts/openrvs-registry"
+	"github.com/willroberts/openrvs-registry/ravenshield"
 )
 
 type Registry interface {
@@ -15,24 +17,24 @@ type Registry interface {
 	SaveServers(csvFile string) error
 	AddServer(ip string, data []byte) error
 	ServerCount() int
-	UpdateServerHealth(onHealthy func(v1.GameServer), onUnhealthy func(v1.GameServer))
+	UpdateServerHealth(onHealthy func(GameServer), onUnhealthy func(GameServer))
 
-	HandleHTTP(listenAddress v1.Hostport) error
+	HandleHTTP(listenAddress string) error
 	HandleUDP(port int, h UDPHandler, stopCh chan struct{}) error
 }
 
 type registry struct {
 	Config            RegistryConfig
-	CSV               v1.CSVSerializer
-	GameServerMap     v1.GameServerMap
+	CSV               CSVSerializer
+	GameServerMap     GameServerMap
 	GameServerMapLock sync.RWMutex
 }
 
 func NewRegistry(config RegistryConfig) Registry {
 	return &registry{
 		Config:        config,
-		CSV:           v1.NewCSVSerializer(),
-		GameServerMap: make(v1.GameServerMap),
+		CSV:           NewCSVSerializer(),
+		GameServerMap: make(GameServerMap),
 	}
 }
 
@@ -84,12 +86,12 @@ func (r *registry) AddServer(ip string, data []byte) error {
 		return errors.New("skipping server with no game mode")
 	}
 
-	serverID := v1.NewHostport(report.IPAddress, report.Port)
-	r.GameServerMap[serverID] = v1.GameServer{
+	serverID := fmt.Sprintf("%s:%d", report.IPAddress, report.Port)
+	r.GameServerMap[serverID] = GameServer{
 		Name:     report.ServerName,
 		IP:       report.IPAddress,
 		Port:     report.Port,
-		GameMode: v1.GameModes[report.CurrentMode],
+		GameMode: ravenshield.GameModes[report.CurrentMode],
 	}
 
 	return nil
@@ -100,13 +102,13 @@ func (r *registry) ServerCount() int {
 }
 
 func (r *registry) UpdateServerHealth(
-	onHealthy func(s v1.GameServer),
-	onUnhealthy func(s v1.GameServer),
+	onHealthy func(s GameServer),
+	onUnhealthy func(s GameServer),
 ) {
 	r.GameServerMapLock.Lock()
 	defer r.GameServerMapLock.Unlock()
 
-	r.GameServerMap = v1.SendHealthchecks(
+	r.GameServerMap = SendHealthchecks(
 		r.GameServerMap,
 		r.Config.HealthcheckTimeout,
 		onHealthy,

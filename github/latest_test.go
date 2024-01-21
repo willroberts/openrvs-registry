@@ -1,6 +1,6 @@
 //go:build integration
 
-package registry
+package github
 
 import "testing"
 

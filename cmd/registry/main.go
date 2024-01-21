@@ -6,8 +6,7 @@ import (
 	"net"
 	"time"
 
-	registry "github.com/willroberts/openrvs-registry"
-	v2 "github.com/willroberts/openrvs-registry/v2"
+	"github.com/willroberts/openrvs-registry/registry"
 )
 
 var (
@@ -24,16 +23,16 @@ func init() {
 func main() {
 	log.Println("openrvs-registry process started")
 
-	config := v2.RegistryConfig{
+	config := registry.RegistryConfig{
 		SeedPath:            seedPath,
 		CheckpointPath:      checkpointPath,
 		CheckpointInterval:  5 * time.Minute,
 		HealthcheckInterval: 30 * time.Second,
 		HealthcheckTimeout:  5 * time.Second,
-		ListenAddr:          registry.Hostport("127.0.0.1:8080"),
+		ListenAddr:          "127.0.0.1:8080",
 	}
 
-	reg := v2.NewRegistry(config)
+	reg := registry.NewRegistry(config)
 
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
 	log.Println("loading servers from file")

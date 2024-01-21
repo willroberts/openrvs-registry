@@ -1,9 +1,7 @@
-package v2
+package registry
 
 import (
 	"time"
-
-	v1 "github.com/willroberts/openrvs-registry"
 )
 
 type RegistryConfig struct {
@@ -12,5 +10,5 @@ type RegistryConfig struct {
 	CheckpointInterval  time.Duration
 	HealthcheckInterval time.Duration
 	HealthcheckTimeout  time.Duration
-	ListenAddr          v1.Hostport
+	ListenAddr          string
 }

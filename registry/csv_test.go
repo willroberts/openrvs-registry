@@ -16,7 +16,7 @@ func TestCSVSerializer_Serialize(t *testing.T) {
 		debugMode:  false,
 	}
 	b := csv.Serialize(GameServerMap{
-		NewHostport("127.0.0.1", 6777): GameServer{
+		"127.0.0.1:6777": GameServer{
 			Name:     "MyServer",
 			IP:       "127.0.0.1",
 			Port:     6777,
@@ -49,7 +49,7 @@ func TestCSVSerializer_SerializeDebug(t *testing.T) {
 	csv := NewCSVSerializer()
 	csv.EnableDebug(true)
 	b := csv.Serialize(GameServerMap{
-		NewHostport("127.0.0.1", 6777): GameServer{
+		"127.0.0.1:6777": GameServer{
 			Name:     "MyServer",
 			IP:       "127.0.0.1",
 			Port:     6777,

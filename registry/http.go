@@ -1,4 +1,4 @@
-package v2
+package registry
 
 import (
 	"io"
@@ -7,16 +7,16 @@ import (
 	"strings"
 
 	beacon "github.com/willroberts/openrvs-beacon"
-	v1 "github.com/willroberts/openrvs-registry"
+	"github.com/willroberts/openrvs-registry/github"
 )
 
-func (r *registry) HandleHTTP(listenAddress v1.Hostport) error {
+func (r *registry) HandleHTTP(listenAddress string) error {
 	http.HandleFunc("/latest", func(w http.ResponseWriter, req *http.Request) {
-		w.Write(v1.GetLatestReleaseVersion())
+		w.Write(github.GetLatestReleaseVersion())
 	})
 
 	http.HandleFunc("/servers", func(w http.ResponseWriter, req *http.Request) {
-		w.Write(r.CSV.Serialize(v1.FilterHealthyServers(r.GameServerMap)))
+		w.Write(r.CSV.Serialize(FilterHealthyServers(r.GameServerMap)))
 	})
 
 	http.HandleFunc("/servers/all", func(w http.ResponseWriter, req *http.Request) {
