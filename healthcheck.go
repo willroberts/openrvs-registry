@@ -40,7 +40,7 @@ func SendHealthchecks(servers GameServerMap) GameServerMap {
 		// Kick off this work in a new thread.
 		wg.Add(1)
 		go func(k Hostport, s GameServer) {
-			updated := UpdateHealthStatus(s)
+			updated := updateHealth(s)
 			lock.Lock()
 			checked[k] = updated
 			lock.Unlock()
@@ -49,14 +49,12 @@ func SendHealthchecks(servers GameServerMap) GameServerMap {
 	}
 	wg.Wait()
 
-	// TODO: Replace log spam with Prometheus counter.
-	//log.Println("healthy servers:", len(FilterHealthyServers(checked)), "out of", len(servers))
 	return checked
 }
 
-// UpdateHealthStatus modifies and returns a GameServer based on a healthcheck
+// updateHealth modifies and returns a GameServer based on a healthcheck
 // result.
-func UpdateHealthStatus(s GameServer) GameServer {
+func updateHealth(s GameServer) GameServer {
 	// Send a UDP beacon and determine if it failed.
 	var failed bool
 	reportBytes, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout)
@@ -85,6 +83,7 @@ func UpdateHealthStatus(s GameServer) GameServer {
 	// Update name and game mode in case they have changed.
 	report, err := beacon.ParseServerReport(s.IP, reportBytes)
 	if err != nil {
+
 		log.Println("failed to parse server report when updating name and game mode:", err)
 	} else {
 		s.Name = report.ServerName
