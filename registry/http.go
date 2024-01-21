@@ -32,12 +32,14 @@ func (r *registry) HandleHTTP(listenAddress string) error {
 	http.HandleFunc("/servers/add", func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPost {
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("request method must be POST"))
 			return
 		}
 
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("failed to read request body"))
 			return
 		}
 		defer req.Body.Close()
@@ -46,6 +48,7 @@ func (r *registry) HandleHTTP(listenAddress string) error {
 		fields := strings.Split(string(body), ":")
 		if len(fields) != 2 {
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("request body must contain 'ip:port'"))
 			return
 		}
 
@@ -53,6 +56,7 @@ func (r *registry) HandleHTTP(listenAddress string) error {
 		port, err := strconv.Atoi(fields[1])
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("port must be a number"))
 			return
 		}
 
@@ -60,6 +64,7 @@ func (r *registry) HandleHTTP(listenAddress string) error {
 		data, err := beacon.GetServerReport(ip, beaconPort, r.Config.HealthcheckTimeout)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("failed to reach new server; ensure ServerBeaconPort is Port+1000 in RavenShield.ini"))
 			return
 		}
 
