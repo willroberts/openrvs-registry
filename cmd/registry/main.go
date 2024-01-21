@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	v2 "github.com/willroberts/openrvs-registry/v2"
+	"github.com/willroberts/openrvs-registry/registry"
 )
 
 var (
@@ -23,7 +23,7 @@ func init() {
 func main() {
 	log.Println("openrvs-registry process started")
 
-	config := v2.RegistryConfig{
+	config := registry.RegistryConfig{
 		SeedPath:            seedPath,
 		CheckpointPath:      checkpointPath,
 		CheckpointInterval:  5 * time.Minute,
@@ -32,7 +32,7 @@ func main() {
 		ListenAddr:          "127.0.0.1:8080",
 	}
 
-	reg := v2.NewRegistry(config)
+	reg := registry.NewRegistry(config)
 
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
 	log.Println("loading servers from file")
@@ -83,11 +83,11 @@ func main() {
 		for {
 			reg.UpdateServerHealth(
 				// onHealthy
-				func(s v2.GameServer) {
+				func(s registry.GameServer) {
 					log.Println("server is now healthy:", s.IP, s.Port)
 				},
 				// onUnhealthy
-				func(s v2.GameServer) {
+				func(s registry.GameServer) {
 					log.Println("server is now unhealthy:", s.IP, s.Port)
 				},
 			)
