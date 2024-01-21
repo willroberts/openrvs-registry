@@ -11,8 +11,6 @@ import (
 )
 
 type Registry interface {
-	GetConfig() RegistryConfig
-
 	LoadServers(csvFile string) error
 	SaveServers(csvFile string) error
 	AddServer(ip string, data []byte) error
@@ -35,10 +33,6 @@ func NewRegistry(config RegistryConfig) Registry {
 		CSV:           v1.NewCSVSerializer(),
 		GameServerMap: make(v1.GameServerMap),
 	}
-}
-
-func (r *registry) GetConfig() RegistryConfig {
-	return r.Config
 }
 
 func (r *registry) LoadServers(csvFile string) error {
