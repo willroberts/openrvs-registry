@@ -86,14 +86,15 @@ func (r *registry) AddServer(ip string, data []byte) error {
 		return errors.New("skipping server with no game mode")
 	}
 
+	// Manually healthcheck this server before adding it to the map.
 	serverID := fmt.Sprintf("%s:%d", report.IPAddress, report.Port)
-	r.GameServerMap[serverID] = GameServer{
+	r.GameServerMap[serverID] = r.updateServerHealth(GameServer{
 		Name:       report.ServerName,
 		IP:         report.IPAddress,
 		Port:       report.Port,
 		BeaconPort: report.BeaconPort,
 		GameMode:   ravenshield.GameModes[report.CurrentMode],
-	}
+	}, func(GameServer) {}, func(GameServer) {})
 
 	return nil
 }
@@ -166,7 +167,7 @@ func (r *registry) updateServerHealth(
 		s.GameMode = ravenshield.GameModes[report.CurrentMode]
 	}
 
-	// Mark unhealthy servers healthy again after three successful checks.
+	// Mark unhealthy servers healthy again after consecutive successful checks.
 	if !s.Health.Healthy && s.Health.PassedChecks >= r.Config.HealthcheckHealthyThreshold {
 		s.Health.Healthy = true // Server is healthy again.
 		onHealthy(s)
