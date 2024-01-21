@@ -6,15 +6,11 @@ import (
 	"testing"
 )
 
-func testHandler(addr *net.UDPAddr, data []byte, err error, stopCh chan struct{}) {
+func testHandler(addr *net.UDPAddr, data []byte, err error) {
 	log.Println("Received UDP from", addr.IP.String())
 	if err != nil {
 		log.Println("UDP error:", err)
-		stopCh <- struct{}{}
-		return
 	}
-	// doSomeWork()
-	stopCh <- struct{}{}
 }
 
 func TestUDP(t *testing.T) {
