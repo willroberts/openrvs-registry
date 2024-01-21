@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"log"
 	"sync"
 	"time"
 
@@ -9,9 +8,6 @@ import (
 )
 
 const (
-	// HealthCheckTimeout is the amount of time to wait before closing the UDP socket.
-	HealthCheckTimeout = 5 * time.Second // Values below 3 lose data.
-
 	// FailedCheckThreshold is used to hide servers after failing healthchecks.
 	FailedCheckThreshold = 60 // 30 minutes
 
@@ -29,18 +25,23 @@ const (
 // the CSV file, since restarting the service currently restarts the number of
 // consecutive failed checks (and we need over 20,000 failed checks to
 // constitute a week).
-func SendHealthchecks(servers ServerMap) ServerMap {
+func SendHealthchecks(
+	servers GameServerMap,
+	timeout time.Duration,
+	onHealthy func(GameServer),
+	onUnhealthy func(GameServer),
+) GameServerMap {
 	var (
-		checked = make(ServerMap, 0) // Output map.
-		wg      sync.WaitGroup       // For synchronizing the UDP beacons.
-		lock    = sync.RWMutex{}     // For safely accessing checked map.
+		checked = make(GameServerMap, 0) // Output map.
+		wg      sync.WaitGroup           // For synchronizing the UDP beacons.
+		lock    = sync.RWMutex{}         // For safely accessing checked map.
 	)
 
 	for k, s := range servers {
 		// Kick off this work in a new thread.
 		wg.Add(1)
-		go func(k Hostport, s Server) {
-			updated := UpdateHealthStatus(s)
+		go func(k Hostport, s GameServer) {
+			updated := updateHealth(s, timeout, onHealthy, onUnhealthy)
 			lock.Lock()
 			checked[k] = updated
 			lock.Unlock()
@@ -49,17 +50,20 @@ func SendHealthchecks(servers ServerMap) ServerMap {
 	}
 	wg.Wait()
 
-	// TODO: Replace log spam with Prometheus counter.
-	//log.Println("healthy servers:", len(FilterHealthyServers(checked)), "out of", len(servers))
 	return checked
 }
 
-// UpdateHealthStatus modifies and returns a Server based on a healthcheck
+// updateHealth modifies and returns a GameServer based on a healthcheck
 // result.
-func UpdateHealthStatus(s Server) Server {
+func updateHealth(
+	s GameServer,
+	timeout time.Duration,
+	onHealthy func(GameServer),
+	onUnhealthy func(GameServer),
+) GameServer {
 	// Send a UDP beacon and determine if it failed.
 	var failed bool
-	reportBytes, err := beacon.GetServerReport(s.IP, s.Port+1000, HealthCheckTimeout)
+	reportBytes, err := beacon.GetServerReport(s.IP, s.Port+1000, timeout)
 	if err != nil {
 		failed = true // No need to log connection refused, timeout, etc.
 	}
@@ -69,7 +73,7 @@ func UpdateHealthStatus(s Server) Server {
 		s.Health.PassedChecks = 0 // 0 checks in a row have passed
 		s.Health.FailedChecks++   // Another check in a row has failed
 		if s.Health.FailedChecks == FailedCheckThreshold {
-			log.Println("server is now unhealthy:", s.IP, s.Port)
+			onUnhealthy(s)
 			s.Health.Healthy = false // Too many failed checks in a row.
 		}
 		if s.Health.FailedChecks >= MaxFailedChecks {
@@ -85,8 +89,9 @@ func UpdateHealthStatus(s Server) Server {
 	// Update name and game mode in case they have changed.
 	report, err := beacon.ParseServerReport(s.IP, reportBytes)
 	if err != nil {
-		log.Println("failed to parse server report when updating name and game mode:", err)
+		s.Health.ParseFailed = true
 	} else {
+		s.Health.ParseFailed = false
 		s.Name = report.ServerName
 		s.GameMode = report.CurrentMode
 	}
@@ -94,7 +99,7 @@ func UpdateHealthStatus(s Server) Server {
 	// Mark unhealthy servers healthy again after three successful checks.
 	if !s.Health.Healthy && s.Health.PassedChecks >= PassedCheckThreshold {
 		s.Health.Healthy = true // Server is healthy again.
-		log.Println("server is now healthy:", s.IP, s.Port)
+		onHealthy(s)
 	}
 
 	return s
@@ -102,8 +107,8 @@ func UpdateHealthStatus(s Server) Server {
 
 // FilterHealthyServers iterates through a map of Servers, and returns a subset
 // maps of Servers which only contains the servers marked as being healthy.
-func FilterHealthyServers(servers ServerMap) ServerMap {
-	filtered := make(ServerMap)
+func FilterHealthyServers(servers GameServerMap) GameServerMap {
+	filtered := make(GameServerMap)
 	for k, s := range servers {
 		if s.Health.Healthy {
 			filtered[k] = s // Copy to output map.

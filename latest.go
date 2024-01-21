@@ -2,8 +2,8 @@ package registry
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -21,23 +21,20 @@ func GetLatestReleaseVersion() []byte {
 	// Get the HTTP response.
 	resp, err := http.Get(latestReleaseURL)
 	if err != nil {
-		log.Println("error getting version from github:", err)
-		return []byte("unknown")
+		return []byte(fmt.Sprintf("error: %s", err.Error()))
 	}
 	defer resp.Body.Close()
 
 	// Read the response body as bytes.
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("error reading response body:", err)
-		return []byte("unknown")
+		return []byte(fmt.Sprintf("error: %s", err.Error()))
 	}
 
 	// Parse the JSON, storing it directly in githubResponse r.
 	var r githubResponse
 	if err := json.Unmarshal(bytes, &r); err != nil {
-		log.Println("error unmarshaling json:", err)
-		return []byte("unknown")
+		return []byte(fmt.Sprintf("error: %s", err.Error()))
 	}
 
 	// Return just the latest version tag as []byte.

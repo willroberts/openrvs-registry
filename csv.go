@@ -11,8 +11,8 @@ import (
 // CSVSerializer provides an interface for serializing and deserializing lists
 // of OpenRVS servers as CSV bytes.
 type CSVSerializer interface {
-	Serialize(ServerMap) []byte
-	Deserialize([]byte) (ServerMap, error)
+	Serialize(GameServerMap) []byte
+	Deserialize([]byte) (GameServerMap, error)
 	EnableDebug(bool)
 }
 
@@ -36,8 +36,8 @@ func (c *csvSerializer) EnableDebug(value bool) {
 	c.debugMode = value
 }
 
-// Serialize writes the given ServerMap as sorted CSV output.
-func (c *csvSerializer) Serialize(m ServerMap) []byte {
+// Serialize writes the given GameServerMap as sorted CSV output.
+func (c *csvSerializer) Serialize(m GameServerMap) []byte {
 	lines := []string{c.headerLine}
 
 	var serverLines []string
@@ -71,8 +71,8 @@ func (c *csvSerializer) Serialize(m ServerMap) []byte {
 	return []byte(strings.Join(lines, "\n"))
 }
 
-func (c *csvSerializer) Deserialize(b []byte) (ServerMap, error) {
-	servers := make(ServerMap)
+func (c *csvSerializer) Deserialize(b []byte) (GameServerMap, error) {
+	servers := make(GameServerMap)
 
 	lines := strings.Split(strings.TrimSuffix(string(b), "\n"), "\n")
 	for _, line := range lines {
@@ -94,8 +94,8 @@ func (c *csvSerializer) Deserialize(b []byte) (ServerMap, error) {
 			return nil, errors.New("invalid (non-numeric) port received")
 		}
 
-		// Save a new Server object in the ServerMap.
-		servers[NewHostport(ip, port)] = Server{
+		// Save a new GameServer in the GameServerMap.
+		servers[NewHostport(ip, port)] = GameServer{
 			Name:     fields[0],
 			IP:       ip,
 			Port:     port,
