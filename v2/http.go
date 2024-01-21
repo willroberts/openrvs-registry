@@ -8,11 +8,12 @@ import (
 
 	beacon "github.com/willroberts/openrvs-beacon"
 	v1 "github.com/willroberts/openrvs-registry"
+	"github.com/willroberts/openrvs-registry/github"
 )
 
 func (r *registry) HandleHTTP(listenAddress v1.Hostport) error {
 	http.HandleFunc("/latest", func(w http.ResponseWriter, req *http.Request) {
-		w.Write(v1.GetLatestReleaseVersion())
+		w.Write(github.GetLatestReleaseVersion())
 	})
 
 	http.HandleFunc("/servers", func(w http.ResponseWriter, req *http.Request) {
