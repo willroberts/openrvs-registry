@@ -88,10 +88,11 @@ func (r *registry) AddServer(ip string, data []byte) error {
 
 	serverID := fmt.Sprintf("%s:%d", report.IPAddress, report.Port)
 	r.GameServerMap[serverID] = GameServer{
-		Name:     report.ServerName,
-		IP:       report.IPAddress,
-		Port:     report.Port,
-		GameMode: ravenshield.GameModes[report.CurrentMode],
+		Name:       report.ServerName,
+		IP:         report.IPAddress,
+		Port:       report.Port,
+		BeaconPort: report.BeaconPort,
+		GameMode:   ravenshield.GameModes[report.CurrentMode],
 	}
 
 	return nil

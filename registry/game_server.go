@@ -5,10 +5,11 @@ type GameServerMap map[string]GameServer
 
 // GameServer contains all relevant fields for an individual game server.
 type GameServer struct {
-	Name     string
-	IP       string
-	Port     int
-	GameMode string
+	Name       string
+	IP         string
+	Port       int
+	BeaconPort int
+	GameMode   string
 
 	Health GameServerHealthStatus
 }

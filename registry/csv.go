@@ -27,7 +27,7 @@ type csvSerializer struct {
 // serialized output.
 func NewCSVSerializer() CSVSerializer {
 	return &csvSerializer{
-		headerLine: "name,ip,port,mode",
+		headerLine: "serverName,ip,port,beaconPort,gameMode",
 		debugMode:  false,
 	}
 }
@@ -43,10 +43,11 @@ func (c *csvSerializer) Serialize(m GameServerMap) []byte {
 	var serverLines []string
 	for _, server := range m {
 		line := fmt.Sprintf(
-			"%s,%s,%d,%s",
+			"%s,%s,%d,%d,%s",
 			server.Name,
 			server.IP,
 			server.Port,
+			server.BeaconPort,
 			server.GameMode,
 		)
 		if c.debugMode {
