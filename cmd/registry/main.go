@@ -39,6 +39,7 @@ func main() {
 		CheckpointPath:      checkpointPath,
 		CheckpointInterval:  5 * time.Minute,
 		HealthcheckInterval: 30 * time.Second,
+		HealthcheckTimeout:  5 * time.Second,
 	}
 
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.

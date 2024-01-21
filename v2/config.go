@@ -7,5 +7,6 @@ type RegistryConfig struct {
 	CheckpointPath      string
 	CheckpointInterval  time.Duration
 	HealthcheckInterval time.Duration
+	HealthcheckTimeout  time.Duration
 	IgnoredNetworks     []string
 }
