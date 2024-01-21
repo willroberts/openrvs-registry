@@ -14,6 +14,7 @@ import (
 
 	beacon "github.com/willroberts/openrvs-beacon"
 	registry "github.com/willroberts/openrvs-registry"
+	"github.com/willroberts/openrvs-registry/v2/udp"
 )
 
 var (
@@ -52,7 +53,8 @@ func main() {
 		log.Println("unable to read checkpoint.csv; falling back to seed.csv")
 		servers, err = LoadServers(seedPath)
 		if err != nil {
-			log.Fatal("unable to load servers from csv: ", err)
+			log.Println("Warning: Unable to load servers from csv: ", err)
+			servers = make(registry.ServerMap)
 		}
 	}
 
@@ -74,7 +76,8 @@ func main() {
 	}()
 
 	// Start listening on UDP/8080 for beacons in a new thread.
-	go listenUDP()
+	log.Println("Starting UDP listener on port 8080")
+	serveUDP()
 
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
@@ -153,32 +156,6 @@ func main() {
 	log.Fatal(http.ListenAndServe("127.0.0.1:8080", nil))
 }
 
-// ListenUDP creates a UDP socket on 0.0.0.0:8080 and configures it to listen.
-// In a blocking loop, continuously reads into a 4KB buffer, parses the source
-// IP and message body, and forward the information to the registry.
-func listenUDP() {
-	log.Println("starting udp listener")
-	addr, err := net.ResolveUDPAddr("udp", ":8080")
-	if err != nil {
-		log.Fatal(err)
-	}
-	conn, err := net.ListenUDP("udp", addr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	b := make([]byte, 4096)
-	for {
-		n, addr, err := conn.ReadFromUDP(b)
-		if err != nil {
-			log.Println("udp error:", err)
-			continue
-		}
-		log.Println("received UDP packet from", addr.IP.String())
-		registerServer(addr.IP.String(), b[0:n]) // IP and message body.
-	}
-}
-
 // When we receive UDP traffic from OpenRVS Game Servers, parse the beacon and
 // update the serverlist.
 func registerServer(ip string, msg []byte) {
@@ -218,7 +195,7 @@ func registerServer(ip string, msg []byte) {
 
 // Write the server count to the console.
 func logServerCount() {
-	log.Printf("there are now %d registered servers (confirm over http)", len(servers))
+	log.Printf("there are now %d registered servers", len(servers))
 }
 
 // LoadServers reads a CSV file from disk.
@@ -246,4 +223,17 @@ func SaveServers(csvPath string, servers registry.ServerMap) error {
 	// Write current servers to checkpoint file.
 	log.Println("saving checkpoint file to", csvPath)
 	return os.WriteFile(csvPath, csv.Serialize(servers), 0644)
+}
+
+func serveUDP() {
+	udpHandler := func(addr *net.UDPAddr, data []byte, err error) {
+		log.Println("Received UDP from", addr.IP.String())
+		if err != nil {
+			log.Println("UDP error:", err)
+			return
+		}
+		registerServer(addr.IP.String(), data)
+	}
+	stopCh := make(chan struct{})
+	go udp.HandleUDP(8080, udpHandler, stopCh)
 }
