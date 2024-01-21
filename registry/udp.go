@@ -5,6 +5,9 @@ import (
 	"net"
 )
 
+// UDPHandler is the signature of a function for processing incoming UDP
+// requests. After checking for potential errors, the handler has access to
+// the origin/source address, as well as the request bytes.
 type UDPHandler func(addr *net.UDPAddr, data []byte, err error)
 
 func (r *registry) HandleUDP(port int, h UDPHandler, stopCh chan struct{}) error {

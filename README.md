@@ -41,6 +41,17 @@ Servers can also be manually added over HTTP:
 $ curl -X POST https://openrvs.org/servers/add -d "host:port"
 ```
 
+**NOTE: Your server's ServerBeaconPort MUST be exactly 1000 higher than your Port.**
+For example, in `RavenShield.ini`:
+```ini
+[URL]
+Port=6777
+
+[IpDrv.UdpBeacon]
+ServerBeaconPort=7777
+BeaconPort=8777
+```
+
 ## Listeners
 
 There is a TCP listener for HTTP requests on port 8080, with the following endpoints:
