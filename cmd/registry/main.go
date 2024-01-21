@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	registry "github.com/willroberts/openrvs-registry"
 	v2 "github.com/willroberts/openrvs-registry/v2"
 )
 
@@ -84,11 +83,11 @@ func main() {
 		for {
 			reg.UpdateServerHealth(
 				// onHealthy
-				func(s registry.GameServer) {
+				func(s v2.GameServer) {
 					log.Println("server is now healthy:", s.IP, s.Port)
 				},
 				// onUnhealthy
-				func(s registry.GameServer) {
+				func(s v2.GameServer) {
 					log.Println("server is now unhealthy:", s.IP, s.Port)
 				},
 			)

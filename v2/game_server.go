@@ -1,4 +1,4 @@
-package registry
+package v2
 
 // GameServerMap maps unique server IDs to server metadata.
 type GameServerMap map[string]GameServer
