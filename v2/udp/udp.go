@@ -5,12 +5,14 @@ import (
 	"net"
 )
 
-type UDPHandler func(addr *net.UDPAddr, data []byte, err error)
+// Handler handles an incoming UDP request from the given address, with any
+// associated data or error.
+type Handler func(addr *net.UDPAddr, data []byte, err error)
 
 // HandleUDP binds the given handler to incoming requests on the given UDP
 // port. This function is blocking, but can be run as a goroutine and stopped
 // by sending to stopCh.
-func HandleUDP(port int, handler UDPHandler, stopCh chan struct{}) error {
+func HandleUDP(port int, h Handler, stopCh chan struct{}) error {
 	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
@@ -28,7 +30,7 @@ func HandleUDP(port int, handler UDPHandler, stopCh chan struct{}) error {
 		break
 	default:
 		n, addr, err := conn.ReadFromUDP(buf) // Blocking
-		go handler(addr, buf[0:n], err)
+		go h(addr, buf[0:n], err)
 	}
 
 	return nil
