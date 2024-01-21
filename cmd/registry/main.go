@@ -55,28 +55,28 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(config.CheckpointInterval)
-			log.Println("Saving checkpoint file to ", config.CheckpointPath)
+			log.Println("saving checkpoint file to ", config.CheckpointPath)
 			if err := reg.SaveServers(config.CheckpointPath); err != nil {
-				log.Println("Failed to write checkpoint file:", err)
+				log.Println("failed to write checkpoint file:", err)
 			}
 		}
 	}()
 
 	// Start listening on UDP/8080 for beacons in a new thread.
 	udpHandler := func(addr *net.UDPAddr, data []byte, err error) {
-		log.Println("Received UDP from", addr.IP.String())
+		log.Println("received UDP from", addr.IP.String())
 		if err != nil {
-			log.Println("UDP error:", err)
+			log.Println("udp error:", err)
 			return
 		}
 		if err := reg.AddServer(addr.IP.String(), data); err != nil {
-			log.Println("Registration error:", err)
+			log.Println("registration error:", err)
 			return
 		}
 		log.Printf("there are now %d registered servers", reg.ServerCount())
 	}
 	stopCh := make(chan struct{})
-	log.Println("Starting UDP listener on port 8080")
+	log.Println("listening on udp://0.0.0.0:8080")
 	go v2.HandleUDP(8080, udpHandler, stopCh)
 
 	// Start sending healthchecks in a new thread at the configured interval.
@@ -97,6 +97,6 @@ func main() {
 	}()
 
 	// Start listening for HTTP requests from OpenRVS clients.
-	log.Printf("Listening on http://%s", config.ListenAddr)
+	log.Printf("listening on http://%s", config.ListenAddr)
 	log.Fatal(reg.HandleHTTP(config.ListenAddr))
 }
