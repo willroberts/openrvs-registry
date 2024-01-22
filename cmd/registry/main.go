@@ -87,7 +87,6 @@ func main() {
 	go func() {
 		log.Printf("sending healthchecks every %d seconds", config.HealthcheckInterval/time.Second)
 		for {
-			log.Println("sending healthchecks")
 			reg.SendHealthchecks(
 				// onHealthy
 				func(s registry.GameServer) {
