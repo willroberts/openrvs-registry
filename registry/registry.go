@@ -4,7 +4,6 @@ package registry
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"sync"
@@ -120,9 +119,10 @@ func (r *registry) SendHealthchecks(
 	for hostport, server := range r.GameServerMap {
 		wg.Add(1)
 		go func(hostport string, server GameServer) {
+			s := r.updateServerHealth(server, onHealthy, onUnhealthy)
 			lock.Lock()
-			defer lock.Unlock()
-			output[hostport] = r.updateServerHealth(server, onHealthy, onUnhealthy)
+			output[hostport] = s
+			lock.Unlock()
 			wg.Done()
 		}(hostport, server)
 	}
@@ -142,7 +142,6 @@ func (r *registry) updateServerHealth(
 		// Assume BeaconPort is Port+1000 if we don't know it yet.
 		s.BeaconPort = s.Port + 1000
 	}
-	log.Println("timeout:", r.Config.HealthcheckTimeout)
 	reportBytes, err := beacon.GetServerReport(s.IP, s.BeaconPort, r.Config.HealthcheckTimeout)
 	if err != nil {
 		s.Health.PassedChecks = 0 // 0 checks in a row have passed
