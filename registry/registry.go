@@ -88,7 +88,7 @@ func (r *registry) AddServer(ip string, data []byte) error {
 
 	// Manually healthcheck this server before adding it to the map.
 	serverID := fmt.Sprintf("%s:%d", report.IPAddress, report.Port)
-	server = r.updateServerHealth(GameServer{
+	server := r.updateServerHealth(GameServer{
 		Name:       report.ServerName,
 		IP:         report.IPAddress,
 		Port:       report.Port,
