@@ -4,6 +4,7 @@ package registry
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"sync"
@@ -141,6 +142,7 @@ func (r *registry) updateServerHealth(
 		// Assume BeaconPort is Port+1000 if we don't know it yet.
 		s.BeaconPort = s.Port + 1000
 	}
+	log.Println("timeout:", r.Config.HealthcheckTimeout)
 	reportBytes, err := beacon.GetServerReport(s.IP, s.BeaconPort, r.Config.HealthcheckTimeout)
 	if err != nil {
 		s.Health.PassedChecks = 0 // 0 checks in a row have passed
