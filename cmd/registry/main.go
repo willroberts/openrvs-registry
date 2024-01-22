@@ -85,7 +85,9 @@ func main() {
 
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
+		log.Printf("sending healthchecks every %d seconds", config.HealthcheckInterval/time.Second)
 		for {
+			log.Println("sending healthchecks")
 			reg.SendHealthchecks(
 				// onHealthy
 				func(s registry.GameServer) {
