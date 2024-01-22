@@ -27,7 +27,7 @@ type csvSerializer struct {
 // serialized output.
 func NewCSVSerializer() CSVSerializer {
 	return &csvSerializer{
-		headerLine: "serverName,ip,port,gameMode",
+		headerLine: "name,ip,port,mode",
 		debugMode:  false,
 	}
 }
