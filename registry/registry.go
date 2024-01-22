@@ -42,9 +42,6 @@ func NewRegistry(config Config) Registry {
 }
 
 func (r *registry) LoadServers(csvFile string) error {
-	r.GameServerMapLock.Lock()
-	defer r.GameServerMapLock.Unlock()
-
 	b, err := os.ReadFile(csvFile)
 	if err != nil {
 		return err
@@ -54,7 +51,9 @@ func (r *registry) LoadServers(csvFile string) error {
 	if err != nil {
 		return err
 	}
+	r.GameServerMapLock.Lock()
 	r.GameServerMap = parsed
+	r.GameServerMapLock.Unlock()
 
 	return nil
 }
@@ -65,9 +64,6 @@ func (r *registry) SaveServers(csvFile string) error {
 }
 
 func (r *registry) AddServer(ip string, data []byte) error {
-	r.GameServerMapLock.Lock()
-	defer r.GameServerMapLock.Unlock()
-
 	if net.ParseIP(ip).IsPrivate() {
 		return errors.New("skipping server with private IP")
 	}
@@ -91,13 +87,17 @@ func (r *registry) AddServer(ip string, data []byte) error {
 
 	// Manually healthcheck this server before adding it to the map.
 	serverID := fmt.Sprintf("%s:%d", report.IPAddress, report.Port)
-	r.GameServerMap[serverID] = r.updateServerHealth(GameServer{
+	server = r.updateServerHealth(GameServer{
 		Name:       report.ServerName,
 		IP:         report.IPAddress,
 		Port:       report.Port,
 		BeaconPort: report.BeaconPort,
 		GameMode:   ravenshield.GameModes[report.CurrentMode],
 	}, func(GameServer) {}, func(GameServer) {})
+
+	r.GameServerMapLock.Lock()
+	r.GameServerMap[serverID] = server
+	r.GameServerMapLock.Unlock()
 
 	return nil
 }
@@ -110,9 +110,6 @@ func (r *registry) SendHealthchecks(
 	onHealthy func(s GameServer),
 	onUnhealthy func(s GameServer),
 ) {
-	r.GameServerMapLock.Lock()
-	defer r.GameServerMapLock.Unlock()
-
 	var (
 		output = make(GameServerMap)
 		wg     sync.WaitGroup
@@ -130,7 +127,9 @@ func (r *registry) SendHealthchecks(
 	}
 	wg.Wait()
 
+	r.GameServerMapLock.Lock()
 	r.GameServerMap = output
+	r.GameServerMapLock.Unlock()
 }
 
 func (r *registry) updateServerHealth(
