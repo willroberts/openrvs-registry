@@ -41,8 +41,10 @@ func main() {
 	log.Println("loading servers from file")
 	if err := reg.LoadServers(config.CheckpointPath); err != nil {
 		log.Println("unable to read checkpoint.csv, falling back to seed.csv")
+		log.Println(err)
 		if err := reg.LoadServers(config.SeedPath); err != nil {
 			log.Println("unable to read seed.csv, falling back to empty server list")
+			log.Println(err)
 		}
 	}
 
