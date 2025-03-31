@@ -98,12 +98,15 @@ func getFormHtml() string {
   <title>OpenRVS.org | Add Server</title>
   <script>
    function handleButtonClick() {
-    var ip = document.getElementById('ip').value;
-    var port = document.getElementById('port').value;
+    var ip_textbox = document.getElementById('ip');
+    var port_textbox = document.getElementById('port');
     fetch("/servers/add", {
      method: "POST",
-     body: ` + "`${ip}:${port}`" + `,
+     body: ` + "`${ip_textbox.value}:${port_textbox.value}`" + `,
     })
+    ip_textbox.value = "";
+    port_textbox.value = "";
+    document.getElementById('submitted_text').hidden = false;
    }
   </script>
  </head>
@@ -119,6 +122,7 @@ func getFormHtml() string {
    </p>
    <p class="button">
     <button type="button" onclick="handleButtonClick()">Submit</button>
+    <label id="submitted_text" for="submitted" hidden=true>Submitted! Your server should appear at https://openrvs.org/servers within five minutes.</label>
    </p>
   </form>
  </body>
