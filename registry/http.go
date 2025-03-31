@@ -73,6 +73,11 @@ func (r *registry) HandleHTTP(listenAddress string) error {
 		w.Write([]byte("server added successfully"))
 	})
 
+	http.HandleFunc("/add-server", func(w http.ResponseWriter, req *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(getFormHtml()))
+	})
+
 	return http.ListenAndServe(string(listenAddress), nil)
 }
 
@@ -84,4 +89,39 @@ func filterHealthyServers(servers GameServerMap) GameServerMap {
 		}
 	}
 	return filtered
+}
+
+func getFormHtml() string {
+	return `
+<html>
+ <head>
+  <title>OpenRVS.org | Add Server</title>
+  <script>
+   function handleButtonClick() {
+    var ip = document.getElementById('ip').value;
+    var port = document.getElementById('port').value;
+    fetch("/servers/add", {
+     method: "POST",
+     body: ` + "`${ip}:${port}`" + `,
+    })
+   }
+  </script>
+ </head>
+ <body>
+  <form action="/add-server" method="POST">
+   <p>
+    <label for="ip">IP Address:</label>
+    <input type="text" id="ip" name="ip_address" />
+   </p>
+   <p>
+    <label for="port">Port:</label>
+    <input type="text" id="port" name="port" />
+   </p>
+   <p class="button">
+    <button type="button" onclick="handleButtonClick()">Submit</button>
+   </p>
+  </form>
+ </body>
+</html>
+`
 }
