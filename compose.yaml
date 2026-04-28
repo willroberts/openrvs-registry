@@ -1,0 +1,13 @@
+services:
+  openrvs-registry:
+    build: .
+    ports:
+      - 8080:8080 # Expose the http server port
+      - 8080:8080/udp # Expose the UDP registry port
+    volumes:
+      - checkpoint_vol:/app/checkpoint_vol # Mount checkpoint volume to persist checkpoint file across container updates
+    # Override checkpoint file location to save in volume  
+    command: -checkpoint-file=/app/checkpoint_vol/checkpoint.csv
+volumes:
+  checkpoint_vol:
+    driver: local
