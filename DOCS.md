@@ -66,6 +66,17 @@ If you'd like to stand up a new deployment:
 1. Populate `seed.csv` to choose some initial game servers.
 1. Run the app.
 
+### Deploy Using Docker
+
+Requires [Docker](https://www.docker.com/) is installed
+
+1. Clone this repository `git clone https://github.com/willroberts/openrvs-registry.git`
+1. `cd openrvs-registry`
+1. Build the container `docker build . -t openrvs-registry`
+1. Run the container `docker run -p 8080:8080 -p 8080:8080/udp openrvs-registry`
+
+An example Docker Compose [compose.yaml](./compose.yaml) file is also provided
+
 ## Pointing OpenRVS Clients at a Registry server
 
 Update the following values in `openrvs.ini`:
