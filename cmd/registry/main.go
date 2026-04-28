@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"time"
+	"fmt"
 
 	"github.com/willroberts/openrvs-registry/registry"
 )
@@ -12,11 +13,17 @@ import (
 var (
 	seedPath       string
 	checkpointPath string
+	listenAddress  string
+	listenPort     int
+	beaconPort     int
 )
 
 func init() {
-	flag.StringVar(&seedPath, "seed-file", "", "path to seed.csv")
-	flag.StringVar(&checkpointPath, "checkpoint-file", "", "path to checkpoint.csv")
+	flag.StringVar(&seedPath, "seed-file", "seed.csv", "path to seed csv file, defaults to seed.csv")
+	flag.StringVar(&checkpointPath, "checkpoint-file", "checkpoint.csv", "path to checkpoint csv file, defaults to checkpoint.csv")
+	flag.IntVar(&listenPort, "listen-port", 8080, "port server will listen on, defaults to 8080")
+	flag.StringVar(&listenAddress, "listen-address", "0.0.0.0", "ip address server will listen on, defaults to 0.0.0.0")
+	flag.IntVar(&beaconPort, "beacon-port", 8080, "port server will listen for registrations on, defaults to 8080")
 	flag.Parse()
 }
 
@@ -32,19 +39,19 @@ func main() {
 		HealthcheckHealthyThreshold:   1,
 		HealthcheckUnhealthyThreshold: 60,   // 30 minutes.
 		HealthcheckHiddenThreshold:    5760, // 2 days.
-		ListenAddr:                    "127.0.0.1:8080",
+		ListenAddr:                    fmt.Sprintf("%s:%d", listenAddress, listenPort),
 	}
 
 	reg := registry.NewRegistry(config)
 
 	// Attempt to load servers from checkpoint.csv, falling back to seed.csv.
-	log.Println("loading servers from file")
+	log.Printf("loading checkpoint servers from \"%s\"", config.CheckpointPath)
 	if err := reg.LoadServers(config.CheckpointPath); err != nil {
-		log.Println("unable to read checkpoint.csv, falling back to seed.csv")
-		log.Println(err)
+		log.Println("failed to read checkpoint file", err)
+		log.Printf("falling back to seed file from \"%s\"", config.SeedPath)
 		if err := reg.LoadServers(config.SeedPath); err != nil {
-			log.Println("unable to read seed.csv, falling back to empty server list")
-			log.Println(err)
+			log.Println("failed to read seed file", err)
+			log.Println("falling back to empty server list")
 		}
 	}
 
@@ -59,14 +66,14 @@ func main() {
 	go func() {
 		for {
 			time.Sleep(config.CheckpointInterval)
-			log.Println("saving checkpoint file to ", config.CheckpointPath)
+			log.Printf("saving checkpoint file to \"%s\"", config.CheckpointPath)
 			if err := reg.SaveServers(config.CheckpointPath); err != nil {
 				log.Println("failed to write checkpoint file:", err)
 			}
 		}
 	}()
 
-	// Start listening on UDP/8080 for beacons in a new thread.
+	// Start listening on UDP/beaconPort for beacons in a new thread.
 	udpHandler := func(addr *net.UDPAddr, data []byte, err error) {
 		log.Println("received UDP from", addr.IP.String())
 		if err != nil {
@@ -80,8 +87,8 @@ func main() {
 		log.Printf("there are now %d registered servers", reg.ServerCount())
 	}
 	stopCh := make(chan struct{})
-	log.Println("listening on udp://0.0.0.0:8080")
-	go reg.HandleUDP(8080, udpHandler, stopCh)
+	log.Printf("listening on udp://0.0.0.0:%d", beaconPort)
+	go reg.HandleUDP(beaconPort, udpHandler, stopCh)
 
 	// Start sending healthchecks in a new thread at the configured interval.
 	go func() {
