@@ -81,6 +81,9 @@ An example Docker Compose [compose.yaml](./compose.yaml) file is also provided
 
 Update the following values in `openrvs.ini`:
 ```
-ServerURL openrvs.org:80 # or your IP and port
+ServerURL openrvs.org:80 # or your IP and port, port should match the port provided to -listen-port option
 ServerListURL servers
+RegistryServerHost=openrvs.org # or your IP
+RegistryServerPort=8080 # Should match the port provided to -beacon-port option
+
 ```
