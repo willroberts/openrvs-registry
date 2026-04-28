@@ -39,18 +39,22 @@ Run `registry[.exe]` to run the build locally. All log information is printed to
 You can now hit the HTTP URLs in your browser (e.g. `http://localhost:8080/servers`),
 or send UDP beacons to `udp://localhost:8080` to test automatic registration.
 
-If you want to run the app from a different working directory, you can use:
-```bat
-registry.exe -csvdir=C:\path\to\csv\files\\
-```
-
-The trailing slash must be included, and on Windows there must be two (since `\` is typically an escape character). On Linux, use forward slashes instead.
-
 If you want to run locally without compiling a new build, you can use:
 ```bat
 cd openrvs-registry.git\cmd\registry
 go run main.go
 ```
+### Command Line Arguments
+
+ - `-seed-file="C:\path\to\seed.csv"` Path to seed file (starting server list), default value: `seed.csv`
+ - `-checkpoint-file="C:\path\to\checkpoint.csv"` Path to checkpoint file (Periodically saved server list, overrides seed file), default value: `checkpoint.csv`  
+ - `-listen-address=0.0.0.0` IP address http server will listen on, default value: `0.0.0.0` (all addresses)
+ - `-listen-port=8080` Port http server will listen on, default value: `8080`
+ - `-beacon-port=8080` Port UDP server will listen for server registrations on, default value: `8080`
+
+Example:  
+    `registry.exe -beacon-port=8090 -listen-port=8070`  
+    Will listen for UDP registration beacons on port 8090 and http requests on port 8070
 
 ## Deployments
 
